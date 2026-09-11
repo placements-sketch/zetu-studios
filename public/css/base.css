@@ -45,8 +45,27 @@ body {
   left: 8%;
   top: 38%;
   stroke: var(--accent);
-  opacity: 0.55;
-  filter: drop-shadow(0 0 14px rgba(215, 255, 61, 0.35));
+  /* Kept faint on purpose. The cards and calendar cells are glass — the panel
+     is 7% opaque and past cells sit at 35% — so anything bright back here
+     reads straight through them and looks like it is in front of the content. */
+  opacity: 0.14;
+  filter: drop-shadow(0 0 18px rgba(215, 255, 61, 0.12));
+}
+
+/* Fades both ends of the sweep so it has no hard start or stop. */
+.glow-sweep path {
+  mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 72%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 72%, transparent);
+}
+
+/* A soft wash over the backdrop art, so the sweep and the seat rows sit at the
+   same depth and neither competes with the foreground. */
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 45%, rgba(5, 13, 10, 0.55), transparent 75%);
+  pointer-events: none;
 }
 
 .grain {
