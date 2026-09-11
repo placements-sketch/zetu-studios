@@ -685,12 +685,334 @@
   margin-left: 2px;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 768px) {
+  /* Reduce header padding */
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .app-header .brandmark span {
+    font-size: 12px;
+  }
+
+  .app-header .who {
+    font-size: 11px;
+  }
+
+  .logout-btn {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  /* Tabs mobile */
+  .tabs {
+    top: 50px;
+    padding: 10px 12px;
+    gap: 4px;
+  }
+
+  .tab-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+    margin-right: 4px;
+  }
+
+  /* Hero mobile */
+  .hero {
+    margin-bottom: 32px;
+    margin-top: 30px;
+  }
+
+  .hero h1 {
+    font-size: clamp(32px, 8vw, 52px);
+  }
+
+  .hero p {
+    font-size: 14px;
+    max-width: 90vw;
+  }
+
+  /* Calendar mobile */
+  .month-nav {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .month-nav button {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .month-nav .label {
+    font-size: 16px;
+    min-width: 140px;
+  }
+
+  .weekdays span {
+    font-size: 10px;
+  }
+
+  .cell {
+    border-radius: 12px;
+    padding: 4px;
+  }
+
+  .cell .num {
+    font-size: clamp(14px, 3vw, 18px);
+  }
+
+  .cell .tag {
+    font-size: 8px;
+    margin-top: 1px;
+  }
+
+  /* Legend mobile */
+  .legend {
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .legend span {
+    font-size: 11px;
+  }
+
+  /* Panel mobile */
   .panel {
     width: 100%;
+    max-width: 100%;
+    padding: 24px 18px 60px;
+  }
+
+  .panel h2 {
+    font-size: 24px;
+  }
+
+  .slot {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+
+  .slot-time {
+    font-size: 13px;
+  }
+
+  .slot-sub {
+    font-size: 10px;
+  }
+
+  .slot-status {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .slot-booking-info {
+    font-size: 12px;
+  }
+
+  .book-btn,
+  .ghost-btn {
+    font-size: 12px;
+    padding: 9px;
+    margin-top: 8px;
+  }
+
+  .form {
+    margin-top: 10px;
+  }
+
+  .input-field,
+  .form .submit,
+  .form .cancel {
+    font-size: 12px;
+  }
+
+  .field-label {
+    font-size: 11px;
+    margin: 10px 0 4px;
+  }
+
+  /* Lists mobile */
+  .booking-card {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+
+  .booking-card .bc-date {
+    font-size: 14px;
+  }
+
+  .booking-card .bc-meta,
+  .booking-card .bc-owner {
+    font-size: 11px;
+  }
+
+  .booking-card .bc-desc {
+    font-size: 12px;
+  }
+
+  .booking-card .bc-cancel {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  /* Admin stats mobile */
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-card .stat-num {
+    font-size: 24px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 10px;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .stats-row {
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  #screenApp {
+    padding-top: 70px !important;
+  }
+
+  .wrap {
+    padding: 0 12px 80px;
+  }
+
+  .app-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .app-header .who {
+    display: none;
+  }
+
+  .tabs {
+    top: 45px;
+    padding: 8px 10px;
+  }
+
+  .tab-btn {
+    font-size: 11px;
+    padding: 5px 10px;
+    margin-right: 2px;
+  }
+
+  .hero {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(28px, 7vw, 42px);
+  }
+
+  .hero p {
+    font-size: 13px;
+  }
+
+  .month-nav {
+    gap: 10px;
+  }
+
+  .month-nav button {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .month-nav .label {
+    font-size: 14px;
+    min-width: 120px;
+  }
+
+  .weekdays span {
+    font-size: 9px;
+  }
+
+  .grid {
+    gap: 8px;
+  }
+
+  .cell {
+    border-radius: 10px;
+  }
+
+  .cell .num {
+    font-size: clamp(12px, 2.5vw, 16px);
+  }
+
+  .panel {
+    padding: 20px 14px 50px;
+  }
+
+  .panel h2 {
+    font-size: 20px;
+  }
+
+  .slot {
+    padding: 10px 12px;
+  }
+
+  .form textarea {
+    min-height: 70px;
   }
 
   .booking-card {
     flex-direction: column;
+    padding: 10px 12px;
+  }
+
+  .legend {
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .legend span {
+    font-size: 10px;
+  }
+
+  .swatch {
+    width: 10px;
+    height: 10px;
+  }
+
+  .foot-brand span {
+    font-size: 12px;
+  }
+
+  .footer-brand {
+    margin-top: 40px;
+  }
+}
+
+@media (max-width: 360px) {
+  .panel {
+    padding: 16px 12px 40px;
+  }
+
+  .hero h1 {
+    font-size: clamp(24px, 6vw, 32px);
+  }
+
+  .tab-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .month-nav .label {
+    font-size: 12px;
+    min-width: 100px;
   }
 }
