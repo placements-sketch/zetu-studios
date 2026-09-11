@@ -43,7 +43,20 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(PUBLIC_DIR, { maxAge: config.IS_PRODUCTION ? '1h' : 0 }));
+// There is no build step and no hashed filenames, so a cached index.html or
+// app.js from a previous version produces confusing half-updated pages.
+// "no-cache" does not mean "do not cache" — the browser keeps the file but
+// revalidates every time, so an unchanged file costs a 304 and a changed one
+// is always picked up.
+app.use(
+  express.static(PUBLIC_DIR, {
+    etag: true,
+    lastModified: true,
+    setHeaders(res) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  })
+);
 
 // API routes
 app.use('/api/auth', authRoutes);
