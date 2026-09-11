@@ -74,7 +74,23 @@ wireStrengthMeter('regPassword', 'regMeter', 'regHint');
 
 // ── Forced password change ──────────────────────────────────────────────────
 
-function showNewPasswordScreen(user) {
+// Confirms with the server before trapping anyone here. If the account does
+// not actually owe a password change — the flag was cleared in another tab, an
+// admin reset it, or the page is running stale code — go straight to the app
+// instead of showing a screen the user cannot get past.
+async function showNewPasswordScreen(user) {
+  try {
+    const fresh = await api.getMe();
+    if (!fresh.user.mustChangePassword) {
+      currentUser = fresh.user;
+      await enterApp();
+      return;
+    }
+    user = fresh.user;
+  } catch (_) {
+    // Offline or the token is bad; fall through and let them try.
+  }
+
   document.getElementById('newPasswordSub').textContent =
     `Signed in as ${user.email}. Set a password of your own before continuing.`;
   ['npCurrent', 'npNew', 'npConfirm'].forEach(id => {

@@ -111,7 +111,7 @@ async function submitLogin() {
 
     // A seeded or reset account must replace its temporary password first.
     if (currentUser.mustChangePassword) {
-      showNewPasswordScreen(currentUser);
+      await showNewPasswordScreen(currentUser);
       return;
     }
     await enterApp();
@@ -184,7 +184,7 @@ window.addEventListener('load', async () => {
     currentUser = result.user;
 
     if (currentUser.mustChangePassword) {
-      showNewPasswordScreen(currentUser);
+      await showNewPasswordScreen(currentUser);
       return;
     }
     await enterApp();

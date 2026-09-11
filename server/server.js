@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const config = require('./config');
 const authRoutes = require('./routes/auth');
 const bookingRoutes = require('./routes/bookings');
@@ -50,6 +51,9 @@ app.use((req, res, next) => {
 // is always picked up.
 app.use(
   express.static(PUBLIC_DIR, {
+    // Let the SPA handler render index.html so it can stamp asset versions;
+    // otherwise this middleware answers "/" first and the tags go out bare.
+    index: false,
     etag: true,
     lastModified: true,
     setHeaders(res) {
@@ -116,9 +120,40 @@ app.use('/api', (req, res) => {
   res.status(404).json({ error: `Unknown endpoint: ${req.method} ${req.originalUrl}` });
 });
 
+// Asset versioning ────────────────────────────────────────────────────────
+// There is no build step, so /css/app.css is the same URL forever and a
+// browser that cached it may keep showing an old page. Stamping the tags with
+// a version derived from file modification times makes any edit a new URL,
+// which no cache can serve stale — entirely sidestepping the problem.
+let cachedVersion = null;
+
+function assetVersion() {
+  if (cachedVersion && config.IS_PRODUCTION) return cachedVersion;
+
+  let newest = 0;
+  for (const dir of ['css', 'js']) {
+    const full = path.join(PUBLIC_DIR, dir);
+    if (!fs.existsSync(full)) continue;
+    for (const file of fs.readdirSync(full)) {
+      const { mtimeMs } = fs.statSync(path.join(full, file));
+      if (mtimeMs > newest) newest = mtimeMs;
+    }
+  }
+
+  cachedVersion = Math.round(newest).toString(36);
+  return cachedVersion;
+}
+
+function renderIndex() {
+  const html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+  const v = assetVersion();
+  // Only local /css/ and /js/ references — external CDN links are left alone.
+  return html.replace(/(src|href)="(\/(?:css|js)\/[^"?]+)"/g, `$1="$2?v=${v}"`);
+}
+
 // SPA fallback for everything else.
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  res.type('html').send(renderIndex());
 });
 
 // Central error handler — always JSON for API callers.
