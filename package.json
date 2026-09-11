@@ -6,18 +6,29 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
-    "build": "echo 'Build step if needed'"
+    "test": "node --test \"test/**/*.test.js\"",
+    "secret": "node -e \"console.log(require('crypto').randomBytes(48).toString('hex'))\"",
+    "doctor": "node server/doctor.js",
+    "mail:test": "node server/mail-test.js",
+    "set-password": "node server/set-password.js"
   },
-  "keywords": ["booking", "studio", "calendar"],
+  "keywords": [
+    "booking",
+    "studio",
+    "calendar"
+  ],
   "author": "Zetu Studios",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
     "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
-    "sqlite3": "^5.1.6",
-    "body-parser": "^1.20.2"
+    "nodemailer": "^10.0.3",
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

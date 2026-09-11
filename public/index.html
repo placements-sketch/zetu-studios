@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zetu Studio — Book a Shoot</title>
+  <meta name="description" content="Reserve a shoot slot in the Zetu Studio calendar.">
+  <meta name="theme-color" content="#071310">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/variables.css">
@@ -39,15 +42,17 @@
       <h1>welcome back</h1>
       <p class="sub">Sign in to book or manage shoot slots.</p>
 
-      <label class="field-label">Email</label>
-      <input type="email" id="loginEmail" class="input-field" placeholder="you@studio.com">
-      <label class="field-label">Password</label>
-      <input type="password" id="loginPassword" class="input-field" placeholder="••••••••">
-      <div id="loginError" class="auth-error"></div>
-      <button id="loginBtn" class="primary-btn">Sign in</button>
+      <form id="loginForm" novalidate>
+        <label class="field-label" for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" name="email" class="input-field" autocomplete="email" placeholder="you@studio.com">
+        <label class="field-label" for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" name="password" class="input-field" autocomplete="current-password" placeholder="••••••••">
+        <div id="loginError" class="auth-error" role="alert"></div>
+        <button type="submit" id="loginBtn" class="primary-btn">Sign in</button>
+      </form>
 
-      <div class="auth-switch">No account yet? <a id="goRegister">Register</a></div>
-      <div class="auth-hint">Admin demo: <code>admin@zetustudio.com</code> / <code>admin123</code></div>
+      <div class="auth-switch">No account yet? <a id="goRegister" role="button" tabindex="0">Register</a></div>
+      <div class="auth-hint hidden" id="demoHint"></div>
     </div>
   </div>
 
@@ -58,18 +63,56 @@
       <h1>create account</h1>
       <p class="sub">Register to start booking shoot slots.</p>
 
-      <label class="field-label">Full name</label>
-      <input type="text" id="regName" class="input-field" placeholder="e.g. Wanjiru Kamau">
-      <label class="field-label">Email</label>
-      <input type="email" id="regEmail" class="input-field" placeholder="you@studio.com">
-      <label class="field-label">Password</label>
-      <input type="password" id="regPassword" class="input-field" placeholder="At least 6 characters">
-      <label class="field-label">Confirm password</label>
-      <input type="password" id="regConfirm" class="input-field" placeholder="••••••••">
-      <div id="regError" class="auth-error"></div>
-      <button id="regBtn" class="primary-btn">Create account</button>
+      <form id="registerForm" novalidate>
+        <label class="field-label" for="regName">Full name</label>
+        <input type="text" id="regName" name="name" class="input-field" autocomplete="name" maxlength="80" placeholder="e.g. Wanjiru Kamau">
+        <label class="field-label" for="regEmail">Email</label>
+        <input type="email" id="regEmail" name="email" class="input-field" autocomplete="email" maxlength="120" placeholder="you@studio.com">
+        <label class="field-label" for="regPassword">Password</label>
+        <input type="password" id="regPassword" name="new-password" class="input-field" autocomplete="new-password" placeholder="At least 6 characters">
+        <label class="field-label" for="regConfirm">Confirm password</label>
+        <input type="password" id="regConfirm" name="confirm-password" class="input-field" autocomplete="new-password" placeholder="••••••••">
+        <div id="regError" class="auth-error" role="alert"></div>
+        <button type="submit" id="regBtn" class="primary-btn">Create account</button>
+      </form>
 
-      <div class="auth-switch">Already have an account? <a id="goLogin">Sign in</a></div>
+      <div class="auth-switch">Already have an account? <a id="goLogin" role="button" tabindex="0">Sign in</a></div>
+    </div>
+  </div>
+
+  <!-- Forced password change (first sign-in, or after a reset) -->
+  <div id="screenNewPassword" class="auth-shell hidden">
+    <div class="auth-card">
+      <div class="brandmark"><span>zetu<span class="flag">studio</span></span></div>
+      <h1>set your password</h1>
+      <p class="sub" id="newPasswordSub">Choose a password before you continue.</p>
+
+      <form id="newPasswordForm" novalidate>
+        <label class="field-label" for="npCurrent">Temporary password</label>
+        <div class="pw-wrap">
+          <input type="password" id="npCurrent" name="current-password" class="input-field" autocomplete="current-password" placeholder="The one you were given">
+          <button type="button" class="pw-toggle" data-target="npCurrent" aria-label="Show password">show</button>
+        </div>
+
+        <label class="field-label" for="npNew">New password</label>
+        <div class="pw-wrap">
+          <input type="password" id="npNew" name="new-password" class="input-field" autocomplete="new-password" placeholder="At least 8 characters">
+          <button type="button" class="pw-toggle" data-target="npNew" aria-label="Show password">show</button>
+        </div>
+        <div class="pw-meter" id="npMeter" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="pw-hint" id="npHint"></div>
+
+        <label class="field-label" for="npConfirm">Confirm new password</label>
+        <div class="pw-wrap">
+          <input type="password" id="npConfirm" name="confirm-password" class="input-field" autocomplete="new-password" placeholder="Type it again">
+          <button type="button" class="pw-toggle" data-target="npConfirm" aria-label="Show password">show</button>
+        </div>
+
+        <div id="npError" class="auth-error" role="alert"></div>
+        <button type="submit" id="npBtn" class="primary-btn">Save password</button>
+      </form>
+
+      <div class="auth-switch"><a id="npLogout" role="button" tabindex="0">Sign out instead</a></div>
     </div>
   </div>
 
@@ -79,14 +122,16 @@
       <div class="brandmark" style="text-align:left; margin-bottom:0;"><span>zetu<span class="flag">studio</span></span></div>
       <div style="display:flex; align-items:center; gap:14px;">
         <div class="who">Signed in as <b id="whoName"></b><span id="whoRole" class="role-tag"></span></div>
+        <button id="accountBtn" class="logout-btn">Account</button>
         <button id="logoutBtn" class="logout-btn">Log out</button>
       </div>
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="calendar">Book a shoot</button>
-      <button class="tab-btn" data-tab="mine">My bookings</button>
-      <button id="adminTabBtn" class="tab-btn hidden" data-tab="admin">All bookings</button>
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="calendar">Book a shoot</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="mine">My bookings</button>
+      <button id="adminTabBtn" class="tab-btn hidden" role="tab" aria-selected="false" data-tab="admin">All bookings</button>
+      <button id="usersTabBtn" class="tab-btn hidden" role="tab" aria-selected="false" data-tab="users">Users</button>
     </div>
 
     <!-- Calendar Tab -->
@@ -121,6 +166,13 @@
       <div id="mineList"></div>
     </div>
 
+    <!-- Users Tab (super admin only) -->
+    <div id="paneUsers" class="hidden">
+      <h2 class="section-title">users</h2>
+      <p class="pane-note">Promote trusted staff to admin so they can see and manage every booking. The super admin account cannot be demoted or removed.</p>
+      <div id="usersList"></div>
+    </div>
+
     <!-- Admin Tab -->
     <div id="paneAdmin" class="hidden">
       <h2 class="section-title">studio overview</h2>
@@ -132,14 +184,54 @@
   </div>
 
   <div class="overlay" id="overlay"></div>
-  <div class="panel" id="panel">
-    <button class="panel-close" id="panelClose">&times;</button>
+  <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelDate">
+    <button class="panel-close" id="panelClose" aria-label="Close">&times;</button>
     <h2 id="panelDate">—</h2>
     <p class="date-sub" id="panelDateSub">Select a slot to book</p>
     <div id="slotsList"></div>
   </div>
 
-  <div class="toast" id="toast">Booking confirmed</div>
+  <div class="overlay" id="accountOverlay"></div>
+  <div class="panel" id="accountPanel" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+    <button class="panel-close" id="accountClose" aria-label="Close">&times;</button>
+    <h2 id="accountTitle">your account</h2>
+    <p class="date-sub" id="accountWho">—</p>
+
+    <div class="section-label">Display name</div>
+    <form id="profileForm" novalidate>
+      <label class="field-label" for="acName">Name</label>
+      <input type="text" id="acName" class="input-field" maxlength="80" autocomplete="name">
+      <button type="submit" class="book-btn" id="acNameBtn">Save name</button>
+    </form>
+
+    <div class="section-label">Change password</div>
+    <form id="passwordForm" novalidate>
+      <label class="field-label" for="acCurrent">Current password</label>
+      <div class="pw-wrap">
+        <input type="password" id="acCurrent" class="input-field" autocomplete="current-password">
+        <button type="button" class="pw-toggle" data-target="acCurrent" aria-label="Show password">show</button>
+      </div>
+
+      <label class="field-label" for="acNew">New password</label>
+      <div class="pw-wrap">
+        <input type="password" id="acNew" class="input-field" autocomplete="new-password" placeholder="At least 8 characters">
+        <button type="button" class="pw-toggle" data-target="acNew" aria-label="Show password">show</button>
+      </div>
+      <div class="pw-meter" id="acMeter" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="pw-hint" id="acHint"></div>
+
+      <label class="field-label" for="acConfirm">Confirm new password</label>
+      <div class="pw-wrap">
+        <input type="password" id="acConfirm" class="input-field" autocomplete="new-password">
+        <button type="button" class="pw-toggle" data-target="acConfirm" aria-label="Show password">show</button>
+      </div>
+
+      <div id="acError" class="auth-error" role="alert"></div>
+      <button type="submit" class="book-btn" id="acPwBtn">Update password</button>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Booking confirmed</div>
 
   <script src="/js/constants.js"></script>
   <script src="/js/api.js"></script>
@@ -148,6 +240,8 @@
   <script src="/js/calendar.js"></script>
   <script src="/js/bookings.js"></script>
   <script src="/js/admin.js"></script>
+  <script src="/js/users.js"></script>
+  <script src="/js/account.js"></script>
   <script src="/js/app.js"></script>
 </body>
 </html>

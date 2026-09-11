@@ -3,6 +3,7 @@ let currentUser = null;
 function showScreen(name) {
   document.getElementById('screenLogin').classList.toggle('hidden', name !== 'login');
   document.getElementById('screenRegister').classList.toggle('hidden', name !== 'register');
+  document.getElementById('screenNewPassword').classList.toggle('hidden', name !== 'newPassword');
   document.getElementById('screenApp').classList.toggle('hidden', name !== 'app');
 }
 
@@ -14,22 +15,33 @@ function setError(elementId, message) {
 
 function clearError(elementId) {
   const el = document.getElementById(elementId);
+  el.textContent = '';
   el.classList.remove('show');
+}
+
+function clearAuthInputs() {
+  ['loginEmail', 'loginPassword', 'regName', 'regEmail', 'regPassword', 'regConfirm'].forEach(
+    id => {
+      document.getElementById(id).value = '';
+    }
+  );
 }
 
 // Navigation between screens
 document.getElementById('goRegister').addEventListener('click', () => {
   clearError('loginError');
   showScreen('register');
+  document.getElementById('regName').focus();
 });
 
 document.getElementById('goLogin').addEventListener('click', () => {
   clearError('regError');
   showScreen('login');
+  document.getElementById('loginEmail').focus();
 });
 
 // Register
-document.getElementById('regBtn').addEventListener('click', async () => {
+async function submitRegister() {
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim().toLowerCase();
   const password = document.getElementById('regPassword').value;
@@ -41,17 +53,14 @@ document.getElementById('regBtn').addEventListener('click', async () => {
     setError('regError', 'Fill in every field.');
     return;
   }
-
   if (!/^\S+@\S+\.\S+$/.test(email)) {
     setError('regError', 'Enter a valid email address.');
     return;
   }
-
   if (password.length < 6) {
     setError('regError', 'Password needs at least 6 characters.');
     return;
   }
-
   if (password !== confirm) {
     setError('regError', 'Passwords do not match.');
     return;
@@ -63,8 +72,9 @@ document.getElementById('regBtn').addEventListener('click', async () => {
 
   try {
     const result = await api.register(name, email, password, confirm);
-    currentUser = result.user;
     api.setToken(result.token);
+    currentUser = result.user;
+    clearAuthInputs();
     await enterApp();
   } catch (err) {
     setError('regError', err.message);
@@ -72,10 +82,10 @@ document.getElementById('regBtn').addEventListener('click', async () => {
     btn.disabled = false;
     btn.textContent = 'Create account';
   }
-});
+}
 
 // Login
-document.getElementById('loginBtn').addEventListener('click', async () => {
+async function submitLogin() {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
 
@@ -91,88 +101,92 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   btn.textContent = 'Signing in…';
 
   try {
-    console.log('Attempting login with:', email);
     const result = await api.login(email, password);
-    console.log('Login successful:', result);
-    currentUser = result.user;
     api.setToken(result.token);
-    console.log('Calling enterApp...');
+    currentUser = result.user;
+    clearAuthInputs();
+
+    // A seeded or reset account must replace its temporary password first.
+    if (currentUser.mustChangePassword) {
+      showNewPasswordScreen(currentUser);
+      return;
+    }
     await enterApp();
-    console.log('enterApp completed');
   } catch (err) {
-    console.error('Login error:', err);
     setError('loginError', err.message || 'Login failed');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Sign in';
   }
+}
+
+// Real <form> elements, so Enter submits and password managers can offer to
+// save the credentials. novalidate keeps our own messages in charge.
+document.getElementById('loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  submitLogin();
 });
 
-// Logout
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  currentUser = null;
-  api.setToken(null);
-  localStorage.removeItem('token');
-  storage.clear();
-  
-  document.getElementById('loginEmail').value = '';
-  document.getElementById('loginPassword').value = '';
-  document.getElementById('regName').value = '';
-  document.getElementById('regEmail').value = '';
-  document.getElementById('regPassword').value = '';
-  document.getElementById('regConfirm').value = '';
-  
-  showScreen('login');
+document.getElementById('registerForm').addEventListener('submit', e => {
+  e.preventDefault();
+  submitRegister();
 });
+
+function logout(message) {
+  currentUser = null;
+  api.clearToken();
+  storage.clear();
+  clearAuthInputs();
+  closePanel();
+  closeAccount();
+  showScreen('login');
+  if (message) setError('loginError', message);
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => logout());
+
+// An expired or revoked token anywhere in the app returns the user to login
+// instead of leaving them on a screen where nothing works.
+api.onUnauthorized = () => {
+  if (!currentUser) return;
+  logout('Your session expired. Please sign in again.');
+};
 
 async function enterApp() {
   document.getElementById('whoName').textContent = currentUser.name;
   document.getElementById('whoRole').textContent = currentUser.role;
-  document.getElementById('adminTabBtn').classList.toggle('hidden', currentUser.role !== 'admin');
-  
+  document.getElementById('adminTabBtn').classList.toggle('hidden', !isAdminRole(currentUser.role));
+  document.getElementById('usersTabBtn').classList.toggle('hidden', !isSuperAdminRole(currentUser.role));
+
   showScreen('app');
   switchTab('calendar');
-  
-  // Load bookings and render calendar
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-  
-  try {
-    const result = await api.getCalendarMonth(month, year);
-    result.dates.forEach(d => {
-      api.getBookingsForDate(d.date).then(r => {
-        storage.setBookings(d.date, r.bookings);
-      });
-    });
-  } catch (err) {
-    console.error('Failed to load bookings:', err);
-  }
-  
-  renderCalendar();
+
+  currentDate = new Date();
+  currentDate.setDate(1);
+  await loadMonth(currentDate.getFullYear(), currentDate.getMonth());
 }
 
-// Check if user is already logged in
+// Restore an existing session on page load.
 window.addEventListener('load', async () => {
-  console.log('Page loaded, checking for token...');
   const token = localStorage.getItem('token');
-  console.log('Token:', token ? 'Found' : 'Not found');
-  
-  if (token) {
-    try {
-      api.setToken(token);
-      console.log('Verifying token...');
-      const result = await api.getMe();
-      console.log('Token verified, user:', result.user.email);
-      currentUser = result.user;
-      await enterApp();
-    } catch (err) {
-      console.error('Token invalid:', err.message);
-      localStorage.removeItem('token');
-      showScreen('login');
+
+  if (!token) {
+    showScreen('login');
+    return;
+  }
+
+  api.setToken(token);
+  try {
+    const result = await api.getMe();
+    currentUser = result.user;
+
+    if (currentUser.mustChangePassword) {
+      showNewPasswordScreen(currentUser);
+      return;
     }
-  } else {
-    console.log('No token found, showing login');
+    await enterApp();
+  } catch (err) {
+    api.clearToken();
     showScreen('login');
   }
 });

@@ -1,254 +1,193 @@
 ================================================================================
                     ZETU STUDIO BOOKING SYSTEM
-                        PROJECT COMPLETE ✓
 ================================================================================
 
-Your Zetu Studio Booking System has been completely rebuilt as a professional,
-production-ready web application.
+A studio booking platform: calendar scheduling, slot availability, accounts
+and an admin panel.
 
-📦 WHAT YOU RECEIVED
+QUICK START
 ================================================================================
 
-✓ Complete Backend (Node.js + Express)
-✓ Secure Authentication (JWT + bcrypt passwords)
-✓ SQLite Database (auto-created, persistent)
-✓ Modern Frontend (HTML/CSS/JS)
-✓ REST API (10 endpoints)
-✓ Admin Dashboard
-✓ Admin Panel Features
-✓ Mobile Responsive Design
-✓ Complete Documentation (5 guides)
-✓ Deployment Ready (5 hosting options)
-✓ Professional Code Structure
-✓ Production-Grade Security
-
-🚀 QUICK START
-================================================================================
-
-1. Open PowerShell in "Zetu Studios" folder
+1. Open PowerShell in the "Zetu Studios" folder
 2. Run: npm install
 3. Run: npm start
 4. Open: http://localhost:5000
-5. Login: admin@zetustudio.com / admin123
+5. Sign in as the super admin: zetustudios@shopzetu.com
+   (its password is printed once, in a box, on the very first start)
+   or the demo admin: admin@zetustudio.com / admin123
 
-⏱️  Time to first run: ~2-5 minutes
+Then run "npm test" to confirm everything passes (77 tests), and
+"npm run doctor" to check the database for inconsistent data.
 
-📁 PROJECT STRUCTURE
+Full walkthrough: START_HERE.md
+
+PROJECT STRUCTURE
 ================================================================================
 
 Zetu Studios/
-├── public/                  # Frontend (HTML, CSS, JS)
-│   ├── index.html          # Main web page
-│   ├── css/                # Stylesheets (organized)
-│   └── js/                 # JavaScript modules
-│
-├── server/                  # Backend (Node.js)
-│   ├── server.js           # Express app
-│   ├── routes/             # API endpoints
-│   ├── middleware/         # Auth logic
-│   └── db/                 # Database setup
-│
-├── data/                    # Database (auto-created)
-│   └── zetu.db            # SQLite file
-│
-├── Documentation/
-│   ├── START_HERE.md       # Quick start
-│   ├── QUICKSTART.md       # Feature guide
-│   ├── README.md           # Full documentation
-│   ├── DEPLOYMENT.md       # Hosting guide
-│   └── TRANSFORMATION.md   # What changed
+├── public/              Frontend (HTML, CSS, vanilla JS)
+├── server/              Backend (Express, SQLite)
+│   ├── config.js        Environment config + .env loader
+│   ├── middleware/      JWT auth, roles, rate limiting
+│   ├── routes/          API endpoints
+│   ├── utils/           Input validation
+│   └── db/              Schema and query helpers
+├── test/                Automated tests (node:test, no extra deps)
+├── data/                SQLite database (created on first run)
+└── archive/             Original single-file prototype — not served
 
-📚 DOCUMENTATION
+DOCUMENTATION
 ================================================================================
 
 Read in this order:
 
-1. START_HERE.md        → Get running in 5 minutes
-2. QUICKSTART.md        → Feature tour & customization
-3. DEPLOYMENT.md        → Go live online
-4. README.md            → Complete reference
-5. TRANSFORMATION.md    → What improved
+1. START_HERE.md      -> Running in five minutes
+2. QUICKSTART.md      -> Feature tour and customisation
+3. NOTIFICATIONS.md   -> Roles, permissions and email notifications
+4. DEPLOYMENT.md      -> Going live safely
+5. README.md          -> Full reference (API, schema, security)
 
-🔐 SECURITY FEATURES
+FEATURES
 ================================================================================
 
-✓ Bcrypt password hashing (not plaintext)
-✓ JWT tokens with expiration
-✓ Role-based access control (Admin vs Client)
-✓ Server-side input validation
-✓ CORS protection
-✓ SQL injection prevention
-✓ XSS protection
-✓ HTTPS ready
+CLIENTS:
+- Book 2-hour slots, half days or full days
+- View their own bookings, split into upcoming and past
+- Cancel their own bookings
+- Responsive layout, keyboard accessible
 
-🌐 DEPLOYMENT OPTIONS
+ADMINS:
+- Everything clients can do
+- See every booking with the client's contact details
+- Filter by upcoming / past / all
+- Cancel any booking
+- Statistics: total, upcoming, this month, unique clients, top shoot type
+
+SUPER ADMIN (zetustudios@shopzetu.com):
+- Everything admins can do
+- Users tab: see every account and its booking count
+- Promote staff to admin, demote them again
+- Remove accounts (their bookings go too)
+- Cannot be demoted or deleted by anyone
+- Receives every email notification
+
+EMAIL NOTIFICATIONS -> zetustudios@shopzetu.com:
+- New booking created
+- Booking cancelled
+- Daily schedule digest each morning (07:00 by default)
+- Never block or break a booking if the mail server is down
+- Configure the four SMTP_* values in .env, then: npm run mail:test
+
+TECHNOLOGY
 ================================================================================
 
-Choose one to go live:
+Frontend: HTML5, CSS3, vanilla ES6+ (no framework, no build step)
+Backend:  Node.js 18+, Express, SQLite3, bcrypt, jsonwebtoken
+Tests:    node:test (built in — no test framework dependency)
 
-1. Render.com         → Free, easy, auto-scaling
-2. Railway.app        → Simple, fast
-3. Replit            → Instant, shareable
-4. DigitalOcean      → Full control
-5. Your own VPS      → Custom infrastructure
-
-All options covered in DEPLOYMENT.md
-
-✨ FEATURES
-================================================================================
-
-USER FEATURES:
-✓ Book 2-hour time slots
-✓ Book half-day blocks
-✓ Book full-day blocks
-✓ View personal bookings
-✓ Cancel personal bookings
-✓ Responsive mobile design
-✓ Beautiful dark UI theme
-✓ Real-time availability updates
-
-ADMIN FEATURES:
-✓ All user features
-✓ View all bookings
-✓ Cancel any booking
-✓ Dashboard statistics
-✓ Monthly booking count
-✓ Top booked shoot type
-✓ Admin override capability
-
-🔧 TECHNOLOGY STACK
-================================================================================
-
-Frontend:
-- HTML5
-- CSS3 (custom variables, grid, flexbox)
-- JavaScript ES6+ (modular, organized)
-- No frameworks needed (vanilla)
-
-Backend:
-- Node.js
-- Express.js (web framework)
-- SQLite3 (database)
-- bcrypt (password hashing)
-- jsonwebtoken (JWT auth)
-
-📊 API ENDPOINTS
+API ENDPOINTS
 ================================================================================
 
 Authentication:
-POST   /api/auth/register           → Create account
-POST   /api/auth/login              → Login
-GET    /api/auth/me                 → Verify token
+  POST   /api/auth/register            Create account
+  POST   /api/auth/login               Sign in (rate limited)
+  GET    /api/auth/me                  Current user
+  POST   /api/auth/change-password     Change own password
 
 Bookings:
-GET    /api/bookings/date/:date                    → Day's bookings
-GET    /api/bookings/calendar/:month/:year        → Month overview
-POST   /api/bookings                              → Create booking
-GET    /api/bookings/my-bookings                  → User's bookings
-GET    /api/bookings/admin/all                    → All bookings (admin)
-GET    /api/bookings/admin/stats                  → Stats (admin)
-DELETE /api/bookings/:id                          → Cancel booking
+  GET    /api/bookings/date/:date                 Bookings on a date
+  GET    /api/bookings/calendar/:month/:year      Month occupancy
+  POST   /api/bookings                            Create (409 if overlapping)
+  GET    /api/bookings/my-bookings                Own bookings
+  GET    /api/bookings/admin/all                  All bookings (admin)
+  GET    /api/bookings/admin/stats                Statistics (admin)
+  DELETE /api/bookings/:id                        Cancel (owner or admin)
 
-🎯 NEXT STEPS
+Users (super admin only):
+  GET    /api/users                    Every account + booking counts
+  PATCH  /api/users/:id/role           Set role to client or admin
+  DELETE /api/users/:id                Remove account and its bookings
+
+Other:
+  GET    /api/health                   Process + database health
+  GET    /api/config                   Slot definitions and limits
+  GET    /api/mail/status              SMTP state (super admin)
+  POST   /api/mail/digest              Send today's digest (super admin)
+
+SECURITY
 ================================================================================
 
-Immediate (Today):
-1. Read START_HERE.md
-2. Run npm install
-3. Run npm start
-4. Test booking flow
+- bcrypt password hashing
+- JWT tokens with expiry
+- Refuses to start in production with the default JWT_SECRET
+- Sign-in rate limited per IP; responses do not reveal whether an email exists
+- Server-side validation of every input
+- Role checks enforced server-side
+- Parameterised SQL
+- DOM output escaped via textContent
+- Security headers on every response
+- Role hierarchy enforced server-side (client < admin < superadmin)
+- The super admin cannot be demoted or deleted, and the role cannot be
+  granted through the API
 
-This Week:
-1. Customize colors & branding
-2. Read DEPLOYMENT.md
-3. Choose hosting provider
-4. Deploy online
-5. Share link with team
+Known limitations are listed in README.md under "Known limitations".
 
-Before Going Live:
-1. Test thoroughly
-2. Change admin password
-3. Set custom JWT_SECRET
-4. Get team feedback
-5. Deploy to production
-
-⚙️ CONFIGURATION
+BEFORE GOING LIVE
 ================================================================================
 
-Environment Variables (optional):
-- NODE_ENV       → development or production
-- PORT           → Server port (default: 5000)
-- JWT_SECRET     → Auth token secret (auto-generated)
+REQUIRED:
+  [ ] Set a real JWT_SECRET       (npm run secret)
+  [ ] Set SUPER_ADMIN_PASSWORD before first start, or save the printed one
+  [ ] Change the admin password
+  [ ] Set NODE_ENV=production
+  [ ] Serve over HTTPS
+  [ ] Put data/zetu.db on a persistent disk
+  [ ] Set up backups
+  [ ] Configure SMTP and run: npm run mail:test
 
-Customizable Constants:
-- Working hours     → Edit /public/js/constants.js
-- Shoot types       → Edit /public/js/constants.js
-- Colors/branding   → Edit /public/css/variables.css
+Details and per-host instructions: DEPLOYMENT.md
 
-🐛 TROUBLESHOOTING
+CONFIGURATION
 ================================================================================
 
-npm: command not found
-→ Install Node.js from https://nodejs.org
+Copy .env.example to .env and edit. Every variable is documented there and in
+DEPLOYMENT.md.
 
-Port 5000 already in use
-→ set PORT=3001 && npm start
+Customisable in code:
+  Working hours / slots  -> public/js/constants.js
+  Shoot types            -> public/js/constants.js
+  Field length limits    -> public/js/constants.js
+  Colours and branding   -> public/css/variables.css
 
-npm install fails
-→ Try: npm install --legacy-peer-deps
+public/js/constants.js is shared: the browser loads it as a script and the
+server requires the same file, so the two cannot disagree.
 
-Database won't start
-→ Delete data/zetu.db and restart
-
-Detailed troubleshooting in QUICKSTART.md
-
-✅ VERIFICATION CHECKLIST
+TROUBLESHOOTING
 ================================================================================
 
-□ npm install completed successfully
-□ npm start shows "running on http://localhost:5000"
-□ Can login with admin@zetustudio.com / admin123
-□ Can create a booking
-□ Booking appears in "My Bookings"
-□ Admin dashboard shows stats
-□ Can cancel a booking
-□ Mobile version works
-□ All documentation readable
+npm: command not found        -> Install Node.js 18+ from https://nodejs.org
+Port 5000 already in use      -> $env:PORT=3001; npm start
+"Cannot reach the server"     -> The server is not running; npm start
+Database won't start          -> Delete data/zetu.db and restart (loses data)
+Frontend errors               -> Browser console (F12)
+Server errors                 -> The PowerShell window running npm start
 
-If all checked ✓ you're ready to deploy!
+More in START_HERE.md.
 
-📞 SUPPORT
+VERIFICATION CHECKLIST
 ================================================================================
 
-Documentation:
-- START_HERE.md          → Quick reference
-- QUICKSTART.md          → Features & customization
-- README.md              → Full docs
-- DEPLOYMENT.md          → Hosting
-- Code comments          → Inline documentation
+[ ] npm install completed
+[ ] npm test passes
+[ ] npm start prints "running on http://localhost:5000"
+[ ] Can sign in as admin
+[ ] Can create a booking
+[ ] Booking appears in "My bookings" with its time range
+[ ] Booking a full day over that slot is refused
+[ ] Month navigation shows bookings in other months
+[ ] Admin dashboard shows statistics
+[ ] Can cancel a booking
+[ ] Super admin sees the Users tab; admins and clients do not
+[ ] npm run mail:test sends a real email (once SMTP is set)
 
-Error Messages:
-- Check browser console (F12) for frontend errors
-- Check PowerShell output for server errors
-- Check data/zetu.db exists (delete to reset)
-
-🎉 YOU'RE READY!
-================================================================================
-
-Your Zetu Studio Booking System is:
-
-✓ Production-ready
-✓ Fully functional
-✓ Professionally structured
-✓ Thoroughly documented
-✓ Ready to deploy
-✓ Easy to customize
-✓ Built to scale
-
-Next action: Open START_HERE.md and follow steps 1-4.
-
-Good luck! Your team will love this. 🚀
-
-================================================================================
-                    Built with ❤️ for Zetu Studio
 ================================================================================

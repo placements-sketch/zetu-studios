@@ -1,42 +1,192 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const path = require('path');
+const config = require('./config');
 const authRoutes = require('./routes/auth');
 const bookingRoutes = require('./routes/bookings');
-const { initDb } = require('./db/init');
+const userRoutes = require('./routes/users');
+const { initDb, closeDb, get } = require('./db/init');
+const { verifyToken, isSuperAdmin } = require('./middleware/auth');
+const { verifyConnection } = require('./utils/mailer');
+const {
+  startDigestScheduler,
+  stopDigestScheduler,
+  sendDailyDigest
+} = require('./utils/notifications');
+const { SLOT_DEFS, BLOCK_DEFS, SHOOT_TYPES, TOTAL_SLOTS, LIMITS } = require('../public/js/constants');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.set('trust proxy', 1); // correct req.ip behind a reverse proxy
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../public')));
+// CORS: same-origin by default in production, permissive in development.
+const corsOrigin = config.CORS_ORIGIN;
+if (corsOrigin === '*') {
+  app.use(cors());
+} else if (corsOrigin) {
+  app.use(cors({ origin: corsOrigin.split(',').map(o => o.trim()).filter(Boolean) }));
+}
+
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+
+// Baseline security headers (a hand-rolled subset of what helmet would set).
+app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('Referrer-Policy', 'no-referrer');
+  res.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  if (config.IS_PRODUCTION) {
+    res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
+app.use(express.static(PUBLIC_DIR, { maxAge: config.IS_PRODUCTION ? '1h' : 0 }));
 
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/users', userRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// Serve main HTML (SPA fallback)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
-});
-
-// Initialize database and start server
-initDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Zetu Studio Booking System running on http://localhost:${PORT}`);
+// Client-visible configuration, so the UI never hard-codes what the server enforces.
+app.get('/api/config', (req, res) => {
+  res.json({
+    slots: SLOT_DEFS,
+    blocks: BLOCK_DEFS,
+    shootTypes: SHOOT_TYPES,
+    totalSlots: TOTAL_SLOTS,
+    limits: LIMITS,
+    // The login screen only advertises the demo account outside production.
+    isDevelopment: !config.IS_PRODUCTION,
+    demoEmail: config.IS_PRODUCTION ? null : config.ADMIN_EMAIL
   });
-}).catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
 });
+
+// Mail diagnostics — super admin only, so credentials cannot be probed anonymously.
+app.get('/api/mail/status', verifyToken, isSuperAdmin, async (req, res) => {
+  const result = await verifyConnection();
+  res.json({
+    configured: config.MAIL_CONFIGURED,
+    host: config.SMTP_HOST || null,
+    port: config.SMTP_PORT,
+    user: config.SMTP_USER || null,
+    notifyEmail: config.NOTIFY_EMAIL,
+    dailyDigest: config.DAILY_DIGEST_ENABLED ? config.DAILY_DIGEST_TIME : false,
+    connection: result.ok ? 'ok' : result.reason
+  });
+});
+
+// Send today's digest on demand, for testing the pipeline end to end.
+app.post('/api/mail/digest', verifyToken, isSuperAdmin, async (req, res, next) => {
+  try {
+    const sent = await sendDailyDigest();
+    res.json({ sent, to: config.NOTIFY_EMAIL });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Health check — verifies the database actually answers, not just that we are up.
+app.get('/api/health', async (req, res) => {
+  try {
+    await get('SELECT 1 AS ok');
+    res.json({ status: 'ok', database: 'ok', uptime: Math.round(process.uptime()) });
+  } catch (err) {
+    res.status(503).json({ status: 'degraded', database: 'unreachable' });
+  }
+});
+
+// Unknown API routes must answer JSON — the client parses every response as JSON.
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: `Unknown endpoint: ${req.method} ${req.originalUrl}` });
+});
+
+// SPA fallback for everything else.
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+});
+
+// Central error handler — always JSON for API callers.
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+
+  // Body parser failures arrive here as SyntaxError.
+  if (err.type === 'entity.parse.failed' || err instanceof SyntaxError) {
+    return res.status(400).json({ error: 'Malformed JSON body' });
+  }
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'Request body is too large' });
+  }
+
+  const status = err.status || 500;
+  if (status >= 500) console.error('Unhandled error:', err);
+
+  res.status(status).json({
+    error: status >= 500 ? 'Something went wrong on our end' : err.message
+  });
+});
+
+let server = null;
+
+async function start() {
+  await initDb();
+
+  server = await new Promise((resolve, reject) => {
+    const s = app.listen(config.PORT);
+    s.once('listening', () => resolve(s));
+    s.once('error', reject);
+  });
+
+  console.log(`Zetu Studio Booking System running on http://localhost:${server.address().port}`);
+  console.log(`  environment: ${config.NODE_ENV}`);
+
+  if (config.MAIL_CONFIGURED) {
+    console.log(`  notifications: ${config.NOTIFY_EMAIL} via ${config.SMTP_HOST}`);
+    // Report bad credentials at boot rather than on the first booking.
+    verifyConnection().then(r => {
+      if (r.ok) console.log('✓ SMTP connection verified');
+      else console.warn('⚠ SMTP check failed:', r.reason);
+    });
+    startDigestScheduler();
+  } else {
+    console.log('  notifications: disabled (SMTP_HOST/SMTP_USER/SMTP_PASS not set)');
+  }
+
+  return server;
+}
+
+async function stop() {
+  stopDigestScheduler();
+  if (server) {
+    await new Promise(resolve => server.close(resolve));
+    server = null;
+  }
+  await closeDb();
+}
+
+// Close the database cleanly so no write is left half-applied.
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, async () => {
+    console.log(`\n${signal} received, shutting down…`);
+    try {
+      await stop();
+    } finally {
+      process.exit(0);
+    }
+  });
+}
+
+process.on('unhandledRejection', err => {
+  console.error('Unhandled promise rejection:', err);
+});
+
+if (require.main === module) {
+  start().catch(err => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = { app, start, stop };
