@@ -359,7 +359,7 @@
   right: 0;
   height: 100%;
   width: 420px;
-  max-width: 92vw;
+  max-width: 90vw;
   background: #0d1e18;
   border-left: 1px solid var(--panel-line);
   z-index: 51;
@@ -802,8 +802,8 @@
 
   /* Panel mobile */
   .panel {
-    width: 100%;
-    max-width: 100%;
+    width: 320px;
+    max-width: 85vw;
     padding: 24px 18px 60px;
   }
 
@@ -977,6 +977,8 @@
   }
 
   .panel {
+    width: 280px;
+    max-width: 80vw;
     padding: 20px 14px 50px;
   }
 
