@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zetu Studio — Book a Shoot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/auth.css">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <div class="backdrop">
+    <div class="seat-rows"><svg viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice">
+      <defs><linearGradient id="seatFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#123027"/><stop offset="100%" stop-color="#071310"/>
+      </linearGradient></defs>
+      <g fill="none" stroke="url(#seatFade)" stroke-width="26" opacity="0.7">
+        <path d="M-50,150 Q100,110 250,150 T550,150 T850,150"/>
+        <path d="M-50,260 Q100,220 250,260 T550,260 T850,260"/>
+        <path d="M-50,370 Q100,330 250,370 T550,370 T850,370"/>
+        <path d="M-50,480 Q100,440 250,480 T550,480 T850,480"/>
+        <path d="M-50,590 Q100,550 250,590 T550,590 T850,590"/>
+        <path d="M-50,700 Q100,660 250,700 T550,700 T850,700"/>
+      </g>
+    </svg></div>
+    <svg class="glow-sweep" viewBox="0 0 300 400" fill="none">
+      <path d="M20,10 C 40,120 220,140 180,240 C 150,320 260,340 240,390" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="grain"></div>
+  </div>
+
+  <!-- Login Screen -->
+  <div id="screenLogin" class="auth-shell">
+    <div class="auth-card">
+      <div class="brandmark"><span>zetu<span class="flag">studio</span></span></div>
+      <h1>welcome back</h1>
+      <p class="sub">Sign in to book or manage shoot slots.</p>
+
+      <label class="field-label">Email</label>
+      <input type="email" id="loginEmail" class="input-field" placeholder="you@studio.com">
+      <label class="field-label">Password</label>
+      <input type="password" id="loginPassword" class="input-field" placeholder="••••••••">
+      <div id="loginError" class="auth-error"></div>
+      <button id="loginBtn" class="primary-btn">Sign in</button>
+
+      <div class="auth-switch">No account yet? <a id="goRegister">Register</a></div>
+      <div class="auth-hint">Admin demo: <code>admin@zetustudio.com</code> / <code>admin123</code></div>
+    </div>
+  </div>
+
+  <!-- Register Screen -->
+  <div id="screenRegister" class="auth-shell hidden">
+    <div class="auth-card">
+      <div class="brandmark"><span>zetu<span class="flag">studio</span></span></div>
+      <h1>create account</h1>
+      <p class="sub">Register to start booking shoot slots.</p>
+
+      <label class="field-label">Full name</label>
+      <input type="text" id="regName" class="input-field" placeholder="e.g. Wanjiru Kamau">
+      <label class="field-label">Email</label>
+      <input type="email" id="regEmail" class="input-field" placeholder="you@studio.com">
+      <label class="field-label">Password</label>
+      <input type="password" id="regPassword" class="input-field" placeholder="At least 6 characters">
+      <label class="field-label">Confirm password</label>
+      <input type="password" id="regConfirm" class="input-field" placeholder="••••••••">
+      <div id="regError" class="auth-error"></div>
+      <button id="regBtn" class="primary-btn">Create account</button>
+
+      <div class="auth-switch">Already have an account? <a id="goLogin">Sign in</a></div>
+    </div>
+  </div>
+
+  <!-- App Screen -->
+  <div id="screenApp" class="wrap hidden">
+    <div class="app-header">
+      <div class="brandmark" style="text-align:left; margin-bottom:0;"><span>zetu<span class="flag">studio</span></span></div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div class="who">Signed in as <b id="whoName"></b><span id="whoRole" class="role-tag"></span></div>
+        <button id="logoutBtn" class="logout-btn">Log out</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="calendar">Book a shoot</button>
+      <button class="tab-btn" data-tab="mine">My bookings</button>
+      <button id="adminTabBtn" class="tab-btn hidden" data-tab="admin">All bookings</button>
+    </div>
+
+    <!-- Calendar Tab -->
+    <div id="paneCalendar">
+      <div class="hero">
+        <p class="eyebrow" id="monthEyebrow">august</p>
+        <h1>book a shoot</h1>
+        <p>Reserve a slot in the Zetu Studio calendar — pick a date, choose a time block, and tell us what you're shooting.</p>
+      </div>
+
+      <div class="month-nav">
+        <button id="prevMonth" aria-label="Previous month">‹</button>
+        <div class="label" id="monthLabel">August 2026</div>
+        <button id="nextMonth" aria-label="Next month">›</button>
+      </div>
+
+      <div class="weekdays">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div class="grid" id="calGrid"></div>
+
+      <div class="legend">
+        <span><i class="swatch muted"></i> No bookings yet</span>
+        <span><i class="swatch open"></i> Slots open</span>
+        <span><i class="swatch full"></i> Fully booked</span>
+      </div>
+    </div>
+
+    <!-- My Bookings Tab -->
+    <div id="paneMine" class="hidden">
+      <h2 class="section-title">my bookings</h2>
+      <div id="mineList"></div>
+    </div>
+
+    <!-- Admin Tab -->
+    <div id="paneAdmin" class="hidden">
+      <h2 class="section-title">studio overview</h2>
+      <div class="stats-row" id="statsRow"></div>
+      <div id="adminList"></div>
+    </div>
+
+    <div class="foot-brand"><span>zetu<span class="flag">studio</span></span></div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="panel" id="panel">
+    <button class="panel-close" id="panelClose">&times;</button>
+    <h2 id="panelDate">—</h2>
+    <p class="date-sub" id="panelDateSub">Select a slot to book</p>
+    <div id="slotsList"></div>
+  </div>
+
+  <div class="toast" id="toast">Booking confirmed</div>
+
+  <script src="/js/constants.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/storage.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/calendar.js"></script>
+  <script src="/js/bookings.js"></script>
+  <script src="/js/admin.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

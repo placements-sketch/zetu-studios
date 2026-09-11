@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zetu Studio — Book a Shoot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --void: #071310;
+      --panel-line: rgba(233,238,232,0.10);
+      --card-muted: rgba(210,222,214,0.07);
+      --card-muted-line: rgba(210,222,214,0.12);
+      --card-light: #eef1ea;
+      --accent: #d7ff3d;
+      --ink: #0e1713;
+      --text: #f2f5ee;
+      --text-dim: #93a89f;
+      --text-faint: #4d6058;
+      --error: #ff8a65;
+    }
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;}
+    body{
+      background: var(--void); color: var(--text); font-family:'Inter',sans-serif;
+      min-height:100vh; overflow-x:hidden; position:relative;
+    }
+
+    /* ---- Cinematic backdrop ---- */
+    .backdrop{
+      position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;
+      background: radial-gradient(ellipse 120% 60% at 50% -10%, rgba(20,70,55,0.55), transparent 60%),
+        linear-gradient(180deg, #081713 0%, #071310 45%, #050d0a 100%);
+    }
+    .seat-rows{ position:absolute; inset:0; opacity:0.55; }
+    .seat-rows svg{ width:100%; height:100%; }
+    .glow-sweep{
+      position:absolute; width:60vw; max-width:640px; left:8%; top:38%;
+      stroke:var(--accent); opacity:0.55; filter:drop-shadow(0 0 14px rgba(215,255,61,0.35));
+    }
+    .grain{
+      position:absolute; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+      mix-blend-mode:overlay;
+    }
+
+    .wrap{ position:relative; z-index:1; max-width:980px; margin:0 auto; padding:56px 24px 100px; }
+    .hidden{ display:none !important; }
+
+    /* ---- Shared brand mark ---- */
+    .brandmark{ text-align:center; margin-bottom:10px; }
+    .brandmark span{ font-family:'Baloo 2'; font-weight:700; font-size:14px; }
+    .brandmark .flag{ color:var(--ink); background:var(--accent); padding:1px 6px; border-radius:4px; margin-left:2px; }
+
+    /* ---- Auth screens ---- */
+    .auth-shell{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .auth-card{
+      position:relative; z-index:1; width:100%; max-width:380px;
+      background:rgba(13,30,24,0.75); border:1px solid var(--panel-line); border-radius:22px;
+      padding:34px 30px; backdrop-filter:blur(6px);
+    }
+    .auth-card h1{ font-family:'Baloo 2'; font-weight:700; font-size:32px; text-transform:lowercase; margin:14px 0 4px; text-align:center; }
+    .auth-card .sub{ color:var(--text-dim); font-size:13px; text-align:center; margin:0 0 26px; }
+    .field-label{ display:block; font-size:11.5px; color:var(--text-dim); margin:14px 0 5px; font-weight:600; }
+    .input-field{
+      width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--card-muted-line); color:var(--text);
+      border-radius:9px; padding:10px 12px; font-family:'Inter'; font-size:13.5px; resize:vertical;
+    }
+    .input-field:focus{ outline:none; border-color:var(--accent); }
+    .primary-btn{
+      margin-top:20px; width:100%; background:var(--accent); color:var(--ink); border:none; font-weight:700;
+      padding:12px; border-radius:10px; cursor:pointer; font-family:'Inter'; font-size:13.5px; transition:filter .15s ease;
+    }
+    .primary-btn:hover{ filter:brightness(1.08); }
+    .primary-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+    .auth-switch{ text-align:center; font-size:12.5px; color:var(--text-dim); margin-top:18px; }
+    .auth-switch a{ color:var(--accent); cursor:pointer; text-decoration:none; font-weight:600; }
+    .auth-error{
+      background:rgba(255,138,101,0.12); color:var(--error); font-size:12.5px; padding:9px 12px;
+      border-radius:9px; margin-top:14px; display:none;
+    }
+    .auth-error.show{ display:block; }
+    .auth-hint{
+      margin-top:18px; font-size:11px; color:var(--text-faint); text-align:center; line-height:1.6;
+      border-top:1px solid var(--panel-line); padding-top:14px;
+    }
+    .auth-hint code{ color:var(--text-dim); }
+
+    /* ---- App header + tabs ---- */
+    .app-header{
+      display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:8px;
+      padding-top:6px;
+    }
+    .app-header .who{ font-size:13px; color:var(--text-dim); }
+    .app-header .who b{ color:var(--text); font-weight:600; }
+    .app-header .role-tag{
+      font-size:10px; font-weight:700; letter-spacing:0.3px; padding:2px 8px; border-radius:10px;
+      background:var(--card-muted); color:var(--text-dim); margin-left:8px; text-transform:uppercase;
+    }
+    .logout-btn{
+      background:none; border:1px solid var(--card-muted-line); color:var(--text-dim); font-size:12px;
+      padding:7px 14px; border-radius:20px; cursor:pointer; font-family:'Inter';
+    }
+    .logout-btn:hover{ border-color:var(--text-dim); color:var(--text); }
+
+    .tabs{ display:flex; gap:8px; margin:20px 0 40px; border-bottom:1px solid var(--panel-line); }
+    .tab-btn{
+      background:none; border:none; color:var(--text-dim); font-family:'Inter'; font-weight:600; font-size:13.5px;
+      padding:10px 4px; cursor:pointer; position:relative; margin-right:20px;
+    }
+    .tab-btn.active{ color:var(--text); }
+    .tab-btn.active::after{
+      content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--accent); border-radius:2px;
+    }
+
+    /* ---- Hero ---- */
+    .hero{ text-align:center; margin-bottom:52px; }
+    .hero .eyebrow{ font-family:'Baloo 2'; font-weight:600; font-size:clamp(20px,3vw,26px); color:var(--text-dim); margin:0 0 2px; }
+    .hero h1{
+      font-family:'Baloo 2'; font-weight:700; font-size:clamp(52px,10vw,96px); line-height:0.92; margin:0;
+      color:var(--text); text-transform:lowercase; letter-spacing:-1px;
+    }
+    .hero p{ color:var(--text-dim); font-size:15px; max-width:420px; margin:16px auto 0; line-height:1.6; }
+
+    /* ---- Month nav ---- */
+    .month-nav{ display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:28px; }
+    .month-nav button{
+      background:var(--card-muted); border:1px solid var(--card-muted-line); color:var(--text);
+      width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:background .15s ease;
+    }
+    .month-nav button:hover{ background:var(--panel-line); }
+    .month-nav .label{ font-family:'Baloo 2'; font-weight:600; font-size:19px; min-width:190px; text-align:center; }
+
+    /* ---- Calendar grid ---- */
+    .weekdays{ display:grid; grid-template-columns:repeat(7,1fr); gap:10px; margin-bottom:10px; }
+    .weekdays span{ text-align:center; font-size:11px; letter-spacing:0.5px; color:var(--text-faint); font-weight:600; }
+    .grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:10px; }
+
+    .cell{
+      aspect-ratio:1/1; border-radius:16px; position:relative;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:var(--card-muted); border:1px solid var(--card-muted-line);
+      transition:transform .15s ease, background .15s ease, border-color .15s ease;
+      cursor:pointer; padding:6px; overflow:hidden;
+    }
+    .cell.empty{ background:transparent; border-color:transparent; cursor:default; }
+    .cell.past{ opacity:0.35; cursor:default; }
+    .cell:not(.empty):not(.past):hover{ transform:translateY(-3px); border-color:rgba(215,255,61,0.4); }
+    .cell .num{ font-family:'Baloo 2'; font-weight:700; font-size:clamp(18px,3.4vw,26px); color:var(--text); }
+    .cell .today-ring{ position:absolute; inset:3px; border-radius:14px; border:1.5px solid var(--accent); pointer-events:none; }
+    .cell .tag{ font-size:9.5px; color:var(--text-dim); margin-top:2px; font-weight:600; text-align:center; line-height:1.3; }
+    .cell.has-open{ background:var(--card-light); border-color:var(--card-light); }
+    .cell.has-open .num{ color:var(--ink); }
+    .cell.has-open .tag{ color:#5c6b63; }
+    .cell.full{ background:var(--accent); border-color:var(--accent); }
+    .cell.full .num, .cell.full .tag{ color:var(--ink); }
+    .cell.full .tag{ color:#3c4a2e; }
+    .cell.selected{ outline:2px solid var(--text); outline-offset:2px; }
+
+    .legend{ display:flex; gap:18px; justify-content:center; margin-top:26px; flex-wrap:wrap; }
+    .legend span{ display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-dim); }
+    .swatch{ width:12px; height:12px; border-radius:4px; display:inline-block; }
+    .swatch.muted{ background:var(--card-muted); border:1px solid var(--card-muted-line); }
+    .swatch.open{ background:var(--card-light); }
+    .swatch.full{ background:var(--accent); }
+
+    /* ---- Side panel (day detail) ---- */
+    .overlay{
+      position:fixed; inset:0; background:rgba(4,10,8,0.55); backdrop-filter:blur(2px);
+      z-index:5; opacity:0; pointer-events:none; transition:opacity .2s ease;
+    }
+    .overlay.show{ opacity:1; pointer-events:auto; }
+    .panel{
+      position:fixed; top:0; right:0; height:100%; width:420px; max-width:92vw;
+      background:#0d1e18; border-left:1px solid var(--panel-line);
+      z-index:6; transform:translateX(100%); transition:transform .28s cubic-bezier(.2,.8,.2,1);
+      overflow-y:auto; padding:32px 26px 60px;
+    }
+    .panel.show{ transform:translateX(0); }
+    .panel-close{ position:absolute; top:22px; right:22px; background:none; border:none; color:var(--text-dim); font-size:22px; cursor:pointer; line-height:1; }
+    .panel h2{ font-family:'Baloo 2'; font-size:30px; margin:0 0 2px; text-transform:lowercase; }
+    .panel .date-sub{ color:var(--text-dim); font-size:13px; margin-bottom:26px; }
+
+    .slot{ border:1px solid var(--card-muted-line); border-radius:14px; padding:14px 16px; margin-bottom:10px; background:var(--card-muted); }
+    .slot.block{ border-color:rgba(215,255,61,0.25); }
+    .slot.unavailable{ opacity:0.55; }
+    .slot-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .slot-time{ font-weight:600; font-size:14.5px; }
+    .slot-sub{ display:block; font-size:11px; color:var(--text-dim); font-weight:500; margin-top:1px; }
+    .slot-status{ font-size:11px; padding:4px 10px; border-radius:20px; font-weight:600; white-space:nowrap; }
+    .slot-status.avail{ background:rgba(215,255,61,0.14); color:var(--accent); }
+    .slot-status.taken{ background:rgba(233,238,232,0.1); color:var(--text-dim); }
+    .slot-status.unavail{ background:rgba(233,238,232,0.06); color:var(--text-faint); }
+    .slot-booking-info{ margin-top:10px; font-size:12.5px; color:var(--text-dim); line-height:1.5; }
+    .slot-booking-info b{ color:var(--text); font-weight:600; }
+    .slot-note{ margin-top:8px; font-size:11.5px; color:var(--text-faint); }
+
+    .section-label{ font-size:11px; letter-spacing:0.3px; color:var(--text-faint); font-weight:600; margin:24px 0 12px; padding-top:16px; border-top:1px solid var(--panel-line); }
+    .section-label:first-of-type{ border-top:none; padding-top:0; margin-top:8px; }
+
+    .book-btn{
+      margin-top:12px; width:100%; background:var(--accent); color:var(--ink); border:none;
+      font-family:'Inter'; font-weight:600; font-size:13px; padding:10px; border-radius:10px; cursor:pointer;
+      transition:filter .15s ease;
+    }
+    .book-btn:hover{ filter:brightness(1.08); }
+    .ghost-btn{
+      margin-top:10px; width:100%; background:none; border:1px solid rgba(255,138,101,0.4); color:var(--error);
+      font-family:'Inter'; font-weight:600; font-size:12.5px; padding:8px; border-radius:10px; cursor:pointer;
+    }
+    .ghost-btn:hover{ background:rgba(255,138,101,0.08); }
+
+    .form{ margin-top:14px; display:none; }
+    .form.show{ display:block; }
+    .form textarea{ min-height:80px; }
+    .form .submit{ margin-top:14px; width:100%; background:var(--text); color:var(--ink); border:none; font-weight:700; padding:11px; border-radius:10px; cursor:pointer; font-family:'Inter'; font-size:13.5px; }
+    .form .submit:disabled{ opacity:0.5; cursor:not-allowed; }
+    .form .cancel{ margin-top:8px; width:100%; background:none; border:none; color:var(--text-faint); font-size:12px; padding:6px; cursor:pointer; text-decoration:underline; }
+
+    .toast{
+      position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+      background:var(--accent); color:var(--ink); font-weight:600; font-size:13.5px;
+      padding:12px 22px; border-radius:30px; z-index:20; opacity:0; transition:all .25s ease; pointer-events:none;
+    }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+    .foot-brand{ text-align:center; margin-top:60px; }
+    .foot-brand span{ font-family:'Baloo 2'; font-weight:700; font-size:14px; color:var(--text); }
+    .foot-brand .flag{ color:var(--ink); background:var(--accent); padding:1px 6px; border-radius:4px; margin-left:2px; }
+
+    /* ---- My bookings / admin lists ---- */
+    .list-empty{
+      text-align:center; color:var(--text-dim); font-size:13.5px; padding:60px 20px;
+      border:1px dashed var(--card-muted-line); border-radius:16px;
+    }
+    .booking-card{
+      display:flex; justify-content:space-between; gap:16px; align-items:flex-start;
+      background:var(--card-muted); border:1px solid var(--card-muted-line); border-radius:16px;
+      padding:16px 18px; margin-bottom:12px;
+    }
+    .booking-card .bc-main{ flex:1; min-width:0; }
+    .booking-card .bc-date{ font-family:'Baloo 2'; font-weight:600; font-size:16px; }
+    .booking-card .bc-meta{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+    .booking-card .bc-owner{ font-size:11.5px; color:var(--text-faint); margin-top:6px; }
+    .booking-card .bc-desc{ font-size:12.5px; color:var(--text-dim); margin-top:8px; line-height:1.5; }
+    .booking-card .bc-type{
+      display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:0.3px; color:var(--accent);
+      background:rgba(215,255,61,0.12); padding:2px 9px; border-radius:20px; margin-top:6px;
+    }
+    .booking-card .bc-cancel{
+      flex-shrink:0; background:none; border:1px solid rgba(255,138,101,0.4); color:var(--error); font-size:11.5px;
+      font-weight:600; padding:7px 12px; border-radius:20px; cursor:pointer; font-family:'Inter';
+    }
+    .booking-card .bc-cancel:hover{ background:rgba(255,138,101,0.08); }
+
+    .stats-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:32px; }
+    .stat-card{ background:var(--card-muted); border:1px solid var(--card-muted-line); border-radius:16px; padding:18px; }
+    .stat-card .stat-num{ font-family:'Baloo 2'; font-weight:700; font-size:30px; }
+    .stat-card .stat-label{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+
+    .section-title{ font-family:'Baloo 2'; font-size:22px; margin:0 0 18px; text-transform:lowercase; }
+
+    @media (max-width: 560px){
+      .cell .tag{ display:none; }
+      .panel{ width:100%; max-width:100%; }
+      .booking-card{ flex-direction:column; }
+    }
+  </style>
+</head>
+  <body>
+
+    <div class="backdrop">
+      <div class="seat-rows"><svg viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice">
+        <defs><linearGradient id="seatFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#123027"/><stop offset="100%" stop-color="#071310"/>
+        </linearGradient></defs>
+        <g fill="none" stroke="url(#seatFade)" stroke-width="26" opacity="0.7">
+          <path d="M-50,150 Q100,110 250,150 T550,150 T850,150"/>
+          <path d="M-50,260 Q100,220 250,260 T550,260 T850,260"/>
+          <path d="M-50,370 Q100,330 250,370 T550,370 T850,370"/>
+          <path d="M-50,480 Q100,440 250,480 T550,480 T850,480"/>
+          <path d="M-50,590 Q100,550 250,590 T550,590 T850,590"/>
+          <path d="M-50,700 Q100,660 250,700 T550,700 T850,700"/>
+        </g>
+      </svg></div>
+      <svg class="glow-sweep" viewBox="0 0 300 400" fill="none">
+        <path d="M20,10 C 40,120 220,140 180,240 C 150,320 260,340 240,390" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <div class="grain"></div>
+    </div>
+
+    <!-- ===================== LOGIN ===================== -->
+    <div class="auth-shell" id="screenLogin">
+      <div class="auth-card">
+        <div class="brandmark"><span>zetu<span class="flag">studio</span></span></div>
+        <h1>welcome back</h1>
+        <p class="sub">Sign in to book or manage shoot slots.</p>
+
+        <label class="field-label">Email</label>
+        <input type="email" class="input-field" id="loginEmail" placeholder="you@studio.com" />
+        <label class="field-label">Password</label>
+        <input type="password" class="input-field" id="loginPassword" placeholder="••••••••" />
+        <div class="auth-error" id="loginError"></div>
+        <button class="primary-btn" id="loginBtn">Sign in</button>
+
+        <div class="auth-switch">No account yet? <a id="goRegister">Register</a></div>
+        <div class="auth-hint">Admin demo login: <code>admin@zetustudio.com</code> / <code>admin123</code></div>
+      </div>
+    </div>
+
+    <!-- ===================== REGISTER ===================== -->
+    <div class="auth-shell hidden" id="screenRegister">
+      <div class="auth-card">
+        <div class="brandmark"><span>zetu<span class="flag">studio</span></span></div>
+        <h1>create account</h1>
+        <p class="sub">Register to start booking shoot slots.</p>
+
+        <label class="field-label">Full name</label>
+        <input type="text" class="input-field" id="regName" placeholder="e.g. Wanjiru Kamau" />
+        <label class="field-label">Email</label>
+        <input type="email" class="input-field" id="regEmail" placeholder="you@studio.com" />
+        <label class="field-label">Password</label>
+        <input type="password" class="input-field" id="regPassword" placeholder="At least 6 characters" />
+        <label class="field-label">Confirm password</label>
+        <input type="password" class="input-field" id="regConfirm" placeholder="••••••••" />
+        <div class="auth-error" id="regError"></div>
+        <button class="primary-btn" id="regBtn">Create account</button>
+
+        <div class="auth-switch">Already have an account? <a id="goLogin">Sign in</a></div>
+        <div class="auth-hint">This is a demo login system — please don't reuse a real password here.</div>
+      </div>
+    </div>
+
+    <!-- ===================== APP (logged in) ===================== -->
+    <div class="wrap hidden" id="screenApp">
+      <div class="app-header">
+        <div class="brandmark" style="text-align:left; margin-bottom:0;"><span>zetu<span class="flag">studio</span></span></div>
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="who">Signed in as <b id="whoName"></b><span class="role-tag" id="whoRole"></span></div>
+          <button class="logout-btn" id="logoutBtn">Log out</button>
+        </div>
+      </div>
+
+      <div class="tabs" id="tabs">
+        <button class="tab-btn active" data-tab="calendar">Book a shoot</button>
+        <button class="tab-btn" data-tab="mine">My bookings</button>
+        <button class="tab-btn hidden" data-tab="admin" id="adminTabBtn">All bookings</button>
+      </div>
+
+      <!-- --- Calendar tab --- -->
+      <div id="paneCalendar">
+        <div class="hero">
+          <p class="eyebrow" id="monthEyebrow">august</p>
+          <h1>book a shoot</h1>
+          <p>Reserve a slot in the Zetu Studio calendar — pick a date, choose a time block, and tell us what you're shooting.</p>
+        </div>
+
+        <div class="month-nav">
+          <button id="prevMonth" aria-label="Previous month">‹</button>
+          <div class="label" id="monthLabel">August 2026</div>
+          <button id="nextMonth" aria-label="Next month">›</button>
+        </div>
+
+        <div class="weekdays">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="grid" id="calGrid"></div>
+
+        <div class="legend">
+          <span><i class="swatch muted"></i> No bookings yet</span>
+          <span><i class="swatch open"></i> Slots open</span>
+          <span><i class="swatch full"></i> Fully booked</span>
+        </div>
+      </div>
+
+      <!-- --- My bookings tab --- -->
+      <div id="paneMine" class="hidden">
+        <h2 class="section-title">my bookings</h2>
+        <div id="mineList"></div>
+      </div>
+
+      <!-- --- Admin tab --- -->
+      <div id="paneAdmin" class="hidden">
+        <h2 class="section-title">studio overview</h2>
+        <div class="stats-row" id="statsRow"></div>
+        <div id="adminList"></div>
+      </div>
+
+      <div class="foot-brand"><span>zetu<span class="flag">studio</span></span></div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="panel" id="panel">
+      <button class="panel-close" id="panelClose">&times;</button>
+      <h2 id="panelDate">—</h2>
+      <p class="date-sub" id="panelDateSub">Select a slot to book</p>
+      <div id="slotsList"></div>
+    </div>
+
+    <div class="toast" id="toast">Booking confirmed</div>
+
+    <script>
+    /* ============================= CONSTANTS ============================= */
+    const SLOT_DEFS = [
+      { slots:[0], label:"09:00 - 11:00" },
+      { slots:[1], label:"11:00 - 13:00" },
+      { slots:[2], label:"13:00 - 15:00" },
+      { slots:[3], label:"15:00 - 17:00" },
+      { slots:[4], label:"17:00 - 19:00" },
+    ];
+    const BLOCK_DEFS = [
+      { slots:[0,1,2], label:"Half day — Morning", sub:"09:00 – 15:00" },
+      { slots:[2,3,4], label:"Half day — Afternoon", sub:"13:00 – 19:00" },
+      { slots:[0,1,2,3,4], label:"Full day", sub:"09:00 – 19:00" },
+    ];
+    const TOTAL_SLOTS = 5;
+    const SHOOT_TYPES = ["Photography","Videography","Product Shoot","Portrait Session","Event Coverage","Content / Social Media","Other"];
+    const ADMIN_EMAIL = "admin@zetustudio.com";
+    const ADMIN_PASSWORD = "admin123";
+
+    /* ============================= STATE ============================= */
+    let current = new Date(); current.setDate(1);
+    let selectedDateKey = null;
+    let bookingsCache = {};     // { "YYYY-MM-DD": [ {id, label, slots, name, type, desc, bookedByEmail, bookedByName, bookedAt} ] }
+    let currentUser = null;     // { name, email, role }
+
+    /* ============================= DOM REFS ============================= */
+    const screenLogin = document.getElementById('screenLogin');
+    const screenRegister = document.getElementById('screenRegister');
+    const screenApp = document.getElementById('screenApp');
+
+    const monthLabel = document.getElementById('monthLabel');
+    const monthEyebrow = document.getElementById('monthEyebrow');
+    const calGrid = document.getElementById('calGrid');
+    const overlay = document.getElementById('overlay');
+    const panel = document.getElementById('panel');
+    const panelDate = document.getElementById('panelDate');
+    const panelDateSub = document.getElementById('panelDateSub');
+    const slotsList = document.getElementById('slotsList');
+    const toast = document.getElementById('toast');
+
+    /* ============================= HELPERS ============================= */
+    function dateKey(y,m,d){ return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+    function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 2400); }
+    function escapeHtml(str){ const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+    function makeId(){ return 'b_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+    function normEmail(e){ return (e||'').trim().toLowerCase(); }
+
+    async function safeGetUser(email){
+      try{
+        const res = await window.storage.get(`user:${normEmail(email)}`, true);
+        return res && res.value ? JSON.parse(res.value) : null;
+      }catch(e){ return null; }
+    }
+
+    async function seedAdmin(){
+      const existing = await safeGetUser(ADMIN_EMAIL);
+      if(!existing){
+        try{
+          await window.storage.set(`user:${ADMIN_EMAIL}`, JSON.stringify({
+            name:'Studio Admin', email:ADMIN_EMAIL, password:ADMIN_PASSWORD, role:'admin', createdAt:new Date().toISOString()
+          }), true);
+        }catch(e){ /* ignore */ }
+      }
+    }
+
+    /* ============================= AUTH SCREENS ============================= */
+    function showScreen(name){
+      screenLogin.classList.toggle('hidden', name !== 'login');
+      screenRegister.classList.toggle('hidden', name !== 'register');
+      screenApp.classList.toggle('hidden', name !== 'app');
+    }
+
+    document.getElementById('goRegister').addEventListener('click', ()=>{
+      document.getElementById('regError').classList.remove('show');
+      showScreen('register');
+    });
+    document.getElementById('goLogin').addEventListener('click', ()=>{
+      document.getElementById('loginError').classList.remove('show');
+      showScreen('login');
+    });
+
+    function setError(elId, msg){
+      const el = document.getElementById(elId);
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', async ()=>{
+      const email = normEmail(document.getElementById('loginEmail').value);
+      const password = document.getElementById('loginPassword').value;
+      const errEl = document.getElementById('loginError');
+      errEl.classList.remove('show');
+
+      if(!email || !password){ setError('loginError', 'Enter your email and password.'); return; }
+
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      try{
+        const user = await safeGetUser(email);
+        if(!user || user.password !== password){
+          setError('loginError', 'Incorrect email or password.');
+          return;
+        }
+        currentUser = { name:user.name, email:user.email, role:user.role };
+        await enterApp();
+      }catch(e){
+        console.error(e);
+        setError('loginError', 'Something went wrong signing in. Try again.');
+      }finally{
+        btn.disabled = false; btn.textContent = 'Sign in';
+      }
+    });
+
+    document.getElementById('regBtn').addEventListener('click', async ()=>{
+      const name = document.getElementById('regName').value.trim();
+      const email = normEmail(document.getElementById('regEmail').value);
+      const password = document.getElementById('regPassword').value;
+      const confirm = document.getElementById('regConfirm').value;
+      const errEl = document.getElementById('regError');
+      errEl.classList.remove('show');
+
+      if(!name || !email || !password){ setError('regError', 'Fill in every field.'); return; }
+      if(!/^\S+@\S+\.\S+$/.test(email)){ setError('regError', 'Enter a valid email address.'); return; }
+      if(password.length < 6){ setError('regError', 'Password needs at least 6 characters.'); return; }
+      if(password !== confirm){ setError('regError', 'Passwords don\u2019t match.'); return; }
+      if(email === ADMIN_EMAIL){ setError('regError', 'That email is reserved.'); return; }
+
+      const btn = document.getElementById('regBtn');
+      btn.disabled = true; btn.textContent = 'Creating account…';
+      try{
+        const existing = await safeGetUser(email);
+        if(existing){ setError('regError', 'An account with that email already exists.'); return; }
+        await window.storage.set(`user:${email}`, JSON.stringify({
+          name, email, password, role:'client', createdAt:new Date().toISOString()
+        }), true);
+        currentUser = { name, email, role:'client' };
+        await enterApp();
+      }catch(e){
+        console.error(e);
+        setError('regError', 'Something went wrong creating your account. Try again.');
+      }finally{
+        btn.disabled = false; btn.textContent = 'Create account';
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{
+      currentUser = null;
+      selectedDateKey = null;
+      closePanel();
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+      switchTab('calendar');
+      showScreen('login');
+    });
+
+    async function enterApp(){
+      document.getElementById('whoName').textContent = currentUser.name;
+      const roleTag = document.getElementById('whoRole');
+      roleTag.textContent = currentUser.role;
+      document.getElementById('adminTabBtn').classList.toggle('hidden', currentUser.role !== 'admin');
+      switchTab('calendar');
+      showScreen('app');
+      renderCalendar();
+      await loadAllBookings();
+      renderCalendar();
+    }
+
+    /* ============================= TABS ============================= */
+    function switchTab(name){
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+      document.getElementById('paneCalendar').classList.toggle('hidden', name !== 'calendar');
+      document.getElementById('paneMine').classList.toggle('hidden', name !== 'mine');
+      document.getElementById('paneAdmin').classList.toggle('hidden', name !== 'admin');
+      if(name === 'mine') renderMine();
+      if(name === 'admin') renderAdmin();
+    }
+    document.getElementById('tabs').addEventListener('click', (e)=>{
+      const btn = e.target.closest('.tab-btn');
+      if(!btn || btn.classList.contains('hidden')) return;
+      switchTab(btn.dataset.tab);
+    });
+
+    /* ============================= STORAGE ============================= */
+    async function loadAllBookings(){
+      bookingsCache = {};
+      try{
+        const list = await window.storage.list('bookings:', true);
+        if(list && list.keys){
+          for(const key of list.keys){
+            try{
+              const res = await window.storage.get(key, true);
+              if(res && res.value){
+                const dKey = key.slice('bookings:'.length);
+                bookingsCache[dKey] = JSON.parse(res.value) || [];
+              }
+            }catch(e){ /* skip unreadable key */ }
+          }
+        }
+      }catch(e){ console.error('Failed to load bookings', e); }
+    }
+
+    async function saveDay(key, entries){
+      return window.storage.set(`bookings:${key}`, JSON.stringify(entries), true);
+    }
+
+    function occupiedSlotSet(dateKey){
+      const entries = bookingsCache[dateKey] || [];
+      const set = new Set();
+      entries.forEach(e => e.slots.forEach(s => set.add(s)));
+      return set;
+    }
+    function findCoveringEntry(dateKey, slotIndex){
+      const entries = bookingsCache[dateKey] || [];
+      return entries.find(e => e.slots.includes(slotIndex));
+    }
+    function findExactEntry(dateKey, slots){
+      const entries = bookingsCache[dateKey] || [];
+      return entries.find(e => e.slots.length === slots.length && e.slots.every(s => slots.includes(s)));
+    }
+    function getAllBookingsFlat(){
+      const out = [];
+      Object.keys(bookingsCache).forEach(dKey=>{
+        (bookingsCache[dKey] || []).forEach(entry => out.push({ dateKey:dKey, ...entry }));
+      });
+      out.sort((a,b)=> a.dateKey.localeCompare(b.dateKey) || a.slots[0]-b.slots[0]);
+      return out;
+    }
+    async function cancelBooking(dateKey, entryId){
+      const entries = (bookingsCache[dateKey] || []).filter(e => e.id !== entryId);
+      const result = await saveDay(dateKey, entries);
+      if(result){
+        bookingsCache[dateKey] = entries;
+        return true;
+      }
+      return false;
+    }
+
+    /* ============================= CALENDAR ============================= */
+    function renderCalendar(){
+      const y = current.getFullYear();
+      const m = current.getMonth();
+      monthLabel.textContent = current.toLocaleString('default',{month:'long', year:'numeric'});
+      monthEyebrow.textContent = current.toLocaleString('default',{month:'long'});
+
+      const firstDay = new Date(y,m,1).getDay();
+      const daysInMonth = new Date(y,m+1,0).getDate();
+      const today = new Date(); today.setHours(0,0,0,0);
+
+      calGrid.innerHTML = '';
+      for(let i=0;i<firstDay;i++){
+        const blank = document.createElement('div');
+        blank.className = 'cell empty';
+        calGrid.appendChild(blank);
+      }
+
+      for(let d=1; d<=daysInMonth; d++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const thisDate = new Date(y,m,d); thisDate.setHours(0,0,0,0);
+        const isPast = thisDate < today;
+        const isToday = thisDate.getTime() === today.getTime();
+        const key = dateKey(y,m,d);
+        const bookedCount = occupiedSlotSet(key).size;
+
+        if(isPast) cell.classList.add('past');
+        if(bookedCount > 0 && bookedCount < TOTAL_SLOTS) cell.classList.add('has-open');
+        if(bookedCount >= TOTAL_SLOTS) cell.classList.add('full');
+        if(key === selectedDateKey) cell.classList.add('selected');
+
+        const num = document.createElement('div');
+        num.className = 'num'; num.textContent = d;
+        cell.appendChild(num);
+
+        if(isToday){
+          const ring = document.createElement('div');
+          ring.className = 'today-ring';
+          cell.appendChild(ring);
+        }
+
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        if(bookedCount === 0){ tag.textContent = ''; }
+        else if(bookedCount >= TOTAL_SLOTS){ tag.textContent = 'Full'; }
+        else { tag.textContent = `${TOTAL_SLOTS - bookedCount} open`; }
+        cell.appendChild(tag);
+
+        if(!isPast) cell.addEventListener('click', ()=> openPanel(y,m,d,key));
+        calGrid.appendChild(cell);
+      }
+    }
+
+    function openPanel(y,m,d,key){
+      selectedDateKey = key;
+      renderCalendar();
+      const dt = new Date(y,m,d);
+      panelDate.textContent = dt.toLocaleDateString('default',{weekday:'long', day:'numeric'});
+      panelDateSub.textContent = dt.toLocaleDateString('default',{month:'long', year:'numeric'});
+      renderSlots(key);
+      overlay.classList.add('show');
+      panel.classList.add('show');
+    }
+    function closePanel(){
+      overlay.classList.remove('show');
+      panel.classList.remove('show');
+      selectedDateKey = null;
+      renderCalendar();
+    }
+
+    function renderSlots(key){
+      slotsList.innerHTML = '';
+      const slotHeader = document.createElement('div');
+      slotHeader.className = 'section-label';
+      slotHeader.textContent = 'Two-hour slots';
+      slotsList.appendChild(slotHeader);
+      SLOT_DEFS.forEach(def => slotsList.appendChild(buildBookingRow(key, def, false)));
+
+      const blockHeader = document.createElement('div');
+      blockHeader.className = 'section-label';
+      blockHeader.textContent = 'Half day or full day';
+      slotsList.appendChild(blockHeader);
+      BLOCK_DEFS.forEach(def => slotsList.appendChild(buildBookingRow(key, def, true)));
+    }
+
+    function buildBookingRow(key, def, isBlock){
+      const wrap = document.createElement('div');
+      wrap.className = 'slot' + (isBlock ? ' block' : '');
+
+      const exact = findExactEntry(key, def.slots);
+      const coveringEntries = def.slots.map(s => findCoveringEntry(key, s)).filter(Boolean);
+      const overlapsOther = coveringEntries.length > 0 && !exact;
+
+      const row = document.createElement('div');
+      row.className = 'slot-row';
+      const timeHtml = `<span class="slot-time">${def.label}${def.sub ? `<span class="slot-sub">${def.sub}</span>` : ''}</span>`;
+
+      if(exact){
+        row.innerHTML = `${timeHtml}<span class="slot-status taken">Booked</span>`;
+        wrap.appendChild(row);
+        const info = document.createElement('div');
+        info.className = 'slot-booking-info';
+        info.innerHTML = `<b>${escapeHtml(exact.type)}</b> — ${escapeHtml(exact.name)}<br>${escapeHtml(exact.desc)}`;
+        wrap.appendChild(info);
+
+        const canCancel = currentUser && (currentUser.role === 'admin' || normEmail(currentUser.email) === normEmail(exact.bookedByEmail));
+        if(canCancel){
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'ghost-btn';
+          cancelBtn.textContent = 'Cancel booking';
+          cancelBtn.addEventListener('click', async ()=>{
+            cancelBtn.disabled = true; cancelBtn.textContent = 'Cancelling…';
+            const ok = await cancelBooking(key, exact.id);
+            if(ok){
+              renderSlots(key); renderCalendar();
+              showToast('Booking cancelled');
+            } else {
+              showToast('Could not cancel, try again');
+              cancelBtn.disabled = false; cancelBtn.textContent = 'Cancel booking';
+            }
+          });
+          wrap.appendChild(cancelBtn);
+        }
+        return wrap;
+      }
+
+      if(overlapsOther){
+        wrap.classList.add('unavailable');
+        row.innerHTML = `${timeHtml}<span class="slot-status unavail">Unavailable</span>`;
+        wrap.appendChild(row);
+        const note = document.createElement('div');
+        note.className = 'slot-note';
+        note.textContent = isBlock ? 'Part of this window is already booked.' : 'Booked as part of a longer block.';
+        wrap.appendChild(note);
+        return wrap;
+      }
+
+      row.innerHTML = `${timeHtml}<span class="slot-status avail">Available</span>`;
+      wrap.appendChild(row);
+
+      const btn = document.createElement('button');
+      btn.className = 'book-btn';
+      btn.textContent = isBlock ? `Book ${def.label.toLowerCase()}` : 'Book this slot';
+      const form = document.createElement('div');
+      form.className = 'form';
+      form.innerHTML = `
+        <label class="field-label">Your name</label>
+        <input type="text" class="input-field f-name" value="${escapeHtml(currentUser ? currentUser.name : '')}" placeholder="e.g. Wanjiru Kamau" />
+        <label class="field-label">Type of shoot</label>
+        <select class="input-field f-type">${SHOOT_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
+        <label class="field-label">Shoot details</label>
+        <textarea class="input-field f-desc" placeholder="Tell us what the shoot involves — crew size, props, references, moodboard links, anything the studio should prep for."></textarea>
+        <button class="submit">Confirm booking</button>
+        <button class="cancel">Cancel</button>
+      `;
+      wrap.appendChild(btn);
+      wrap.appendChild(form);
+
+      btn.addEventListener('click', ()=>{ form.classList.add('show'); btn.style.display = 'none'; });
+      form.querySelector('.cancel').addEventListener('click', ()=>{ form.classList.remove('show'); btn.style.display = 'block'; });
+      form.querySelector('.submit').addEventListener('click', async ()=>{
+        const nameVal = form.querySelector('.f-name').value.trim();
+        const typeVal = form.querySelector('.f-type').value;
+        const descVal = form.querySelector('.f-desc').value.trim();
+        if(!nameVal || !descVal){ showToast('Add your name and shoot details first'); return; }
+
+        const submitBtn = form.querySelector('.submit');
+        submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
+        try{
+          const stillFree = def.slots.every(s => !findCoveringEntry(key, s));
+          if(!stillFree){
+            showToast('That window was just booked — pick another');
+            renderSlots(key);
+            return;
+          }
+          const entry = {
+            id: makeId(), label: def.label, slots: def.slots, name: nameVal, type: typeVal, desc: descVal,
+            bookedByEmail: currentUser.email, bookedByName: currentUser.name, bookedAt: new Date().toISOString()
+          };
+          const existing = bookingsCache[key] ? bookingsCache[key].slice() : [];
+          existing.push(entry);
+          const result = await saveDay(key, existing);
+          if(result){
+            bookingsCache[key] = existing;
+            renderSlots(key); renderCalendar();
+            showToast('Booked — see you then!');
+          } else {
+            showToast('Could not save booking, try again');
+            submitBtn.disabled = false; submitBtn.textContent = 'Confirm booking';
+          }
+        }catch(e){
+          console.error(e);
+          showToast('Something went wrong saving your booking');
+          submitBtn.disabled = false; submitBtn.textContent = 'Confirm booking';
+        }
+      });
+
+      return wrap;
+    }
+
+    document.getElementById('prevMonth').addEventListener('click', ()=>{ current.setMonth(current.getMonth()-1); renderCalendar(); });
+    document.getElementById('nextMonth').addEventListener('click', ()=>{ current.setMonth(current.getMonth()+1); renderCalendar(); });
+    document.getElementById('panelClose').addEventListener('click', closePanel);
+    overlay.addEventListener('click', closePanel);
+
+    /* ============================= MY BOOKINGS ============================= */
+    function renderMine(){
+      const mineList = document.getElementById('mineList');
+      mineList.innerHTML = '';
+      const mine = getAllBookingsFlat().filter(b => normEmail(b.bookedByEmail) === normEmail(currentUser.email));
+
+      if(mine.length === 0){
+        mineList.innerHTML = `<div class="list-empty">You haven't booked any shoots yet — head to "Book a shoot" to reserve a slot.</div>`;
+        return;
+      }
+      mine.forEach(b => mineList.appendChild(buildBookingCard(b, true)));
+    }
+
+    /* ============================= ADMIN ============================= */
+    function renderAdmin(){
+      const all = getAllBookingsFlat();
+      const statsRow = document.getElementById('statsRow');
+      const now = new Date(); const ym = now.toISOString().slice(0,7);
+      const thisMonthCount = all.filter(b => b.dateKey.startsWith(ym)).length;
+      const typeCounts = {};
+      all.forEach(b => { typeCounts[b.type] = (typeCounts[b.type]||0)+1; });
+      let topType = '—', topCount = 0;
+      Object.keys(typeCounts).forEach(t => { if(typeCounts[t] > topCount){ topType = t; topCount = typeCounts[t]; } });
+
+      statsRow.innerHTML = `
+        <div class="stat-card"><div class="stat-num">${all.length}</div><div class="stat-label">Total bookings</div></div>
+        <div class="stat-card"><div class="stat-num">${thisMonthCount}</div><div class="stat-label">This month</div></div>
+        <div class="stat-card"><div class="stat-num" style="font-size:18px; line-height:1.5;">${escapeHtml(topType)}</div><div class="stat-label">Most booked type</div></div>
+      `;
+
+      const adminList = document.getElementById('adminList');
+      adminList.innerHTML = '';
+      if(all.length === 0){
+        adminList.innerHTML = `<div class="list-empty">No bookings on the calendar yet.</div>`;
+        return;
+      }
+      all.forEach(b => adminList.appendChild(buildBookingCard(b, false)));
+    }
+
+    function buildBookingCard(b, isMineView){
+      const card = document.createElement('div');
+      card.className = 'booking-card';
+      const dt = new Date(b.dateKey + 'T00:00:00');
+      const dateStr = dt.toLocaleDateString('default',{ weekday:'short', day:'numeric', month:'short', year:'numeric' });
+
+      const main = document.createElement('div');
+      main.className = 'bc-main';
+      main.innerHTML = `
+        <div class="bc-date">${dateStr}</div>
+        <div class="bc-meta">${escapeHtml(b.label)}</div>
+        ${!isMineView ? `<div class="bc-owner">${escapeHtml(b.bookedByName)} · ${escapeHtml(b.bookedByEmail)}</div>` : ''}
+        <div class="bc-type">${escapeHtml(b.type)}</div>
+        <div class="bc-desc">${escapeHtml(b.desc)}</div>
+      `;
+      card.appendChild(main);
+
+      const canCancel = currentUser.role === 'admin' || normEmail(b.bookedByEmail) === normEmail(currentUser.email);
+      if(canCancel){
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'bc-cancel';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.addEventListener('click', async ()=>{
+          cancelBtn.disabled = true; cancelBtn.textContent = '…';
+          const ok = await cancelBooking(b.dateKey, b.id);
+          if(ok){
+            showToast('Booking cancelled');
+            renderCalendar();
+            if(currentUser.role === 'admin') renderAdmin();
+            renderMine();
+          } else {
+            showToast('Could not cancel, try again');
+            cancelBtn.disabled = false; cancelBtn.textContent = 'Cancel';
+          }
+        });
+        card.appendChild(cancelBtn);
+      }
+      return card;
+    }
+
+    /* ============================= INIT ============================= */
+    (async function init(){
+      await seedAdmin();
+      // BYPASS: Skip login and go straight to app for testing
+      currentUser = { name:'Test User', email:'test@zetustudio.com', role:'admin' };
+      await enterApp();
+    })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "zetu-studio-booking",
+  "version": "1.0.0",
+  "description": "Professional studio booking system for Zetu Studio",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "build": "echo 'Build step if needed'"
+  },
+  "keywords": ["booking", "studio", "calendar"],
+  "author": "Zetu Studios",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "sqlite3": "^5.1.6",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

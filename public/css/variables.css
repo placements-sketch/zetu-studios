@@ -1,0 +1,13 @@
+:root {
+  --void: #071310;
+  --panel-line: rgba(233, 238, 232, 0.10);
+  --card-muted: rgba(210, 222, 214, 0.07);
+  --card-muted-line: rgba(210, 222, 214, 0.12);
+  --card-light: #eef1ea;
+  --accent: #d7ff3d;
+  --ink: #0e1713;
+  --text: #f2f5ee;
+  --text-dim: #93a89f;
+  --text-faint: #4d6058;
+  --error: #ff8a65;
+}

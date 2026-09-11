@@ -1,0 +1,77 @@
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 380px;
+  background: rgba(13, 30, 24, 0.75);
+  border: 1px solid var(--panel-line);
+  border-radius: 22px;
+  padding: 34px 30px;
+  backdrop-filter: blur(6px);
+}
+
+.auth-card h1 {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  text-transform: lowercase;
+  margin: 14px 0 4px;
+  text-align: center;
+}
+
+.auth-card .sub {
+  color: var(--text-dim);
+  font-size: 13px;
+  text-align: center;
+  margin: 0 0 26px;
+}
+
+.auth-error {
+  background: rgba(255, 138, 101, 0.12);
+  color: var(--error);
+  font-size: 12.5px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  margin-top: 14px;
+  display: none;
+}
+
+.auth-error.show {
+  display: block;
+}
+
+.auth-switch {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin-top: 18px;
+}
+
+.auth-switch a {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-hint {
+  margin-top: 18px;
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: center;
+  line-height: 1.6;
+  border-top: 1px solid var(--panel-line);
+  padding-top: 14px;
+}
+
+.auth-hint code {
+  color: var(--text-dim);
+}
