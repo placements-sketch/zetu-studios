@@ -57,8 +57,11 @@ async function submitRegister() {
     setError('regError', 'Enter a valid email address.');
     return;
   }
-  if (password.length < 6) {
-    setError('regError', 'Password needs at least 6 characters.');
+  // Same rule the server enforces, so the form never accepts something the
+  // API will then reject. Defined in account.js.
+  const problem = passwordProblem(password);
+  if (problem) {
+    setError('regError', problem);
     return;
   }
   if (password !== confirm) {

@@ -70,6 +70,7 @@ document.addEventListener('click', e => {
 
 wireStrengthMeter('npNew', 'npMeter', 'npHint');
 wireStrengthMeter('acNew', 'acMeter', 'acHint');
+wireStrengthMeter('regPassword', 'regMeter', 'regHint');
 
 // ── Forced password change ──────────────────────────────────────────────────
 
@@ -130,6 +131,8 @@ document.getElementById('npLogout').addEventListener('keydown', e => {
 
 function openAccount() {
   document.getElementById('accountWho').textContent = `${currentUser.email} · ${currentUser.role}`;
+  // Gives the password manager something to key the saved entry on.
+  document.getElementById('acUsername').value = currentUser.email;
   document.getElementById('acName').value = currentUser.name || '';
   ['acCurrent', 'acNew', 'acConfirm'].forEach(id => {
     document.getElementById(id).value = '';

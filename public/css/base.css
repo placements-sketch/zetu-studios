@@ -182,3 +182,41 @@ body {
     padding: 32px 16px 60px;
   }
 }
+
+/* ── Autofilled fields ───────────────────────────────────────────────────────
+   Chrome paints its own opaque background on autofilled inputs and ignores
+   `background`, which left password fields looking white on this dark theme.
+   An inset box-shadow is the one thing that covers it.
+
+   The two selectors are deliberately in separate rules: a browser that does
+   not recognise one would otherwise discard the whole block. */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--input-autofill) inset !important;
+  box-shadow: 0 0 0 1000px var(--input-autofill) inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text);
+  border-radius: 9px;
+  /* Chrome fades its highlight in on a timer; a very long delay defers it
+     indefinitely so the override is never overtaken. */
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
+input:autofill,
+textarea:autofill,
+select:autofill {
+  box-shadow: 0 0 0 1000px var(--input-autofill) inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text);
+  border-radius: 9px;
+}
+
+/* The reveal button sits inside the field, so it must not be painted over. */
+.pw-wrap .pw-toggle {
+  z-index: 2;
+}

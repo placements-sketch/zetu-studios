@@ -10,4 +10,9 @@
   --text-dim: #93a89f;
   --text-faint: #4d6058;
   --error: #ff8a65;
+  /* Solid stand-in for .input-field's translucent fill. Browsers paint the
+     autofill background themselves and ignore `background`, so the override
+     below needs an opaque colour. Matches how the input renders over both the
+     auth card (#182622) and the slide-over panel (#192924). */
+  --input-autofill: #182722;
 }

@@ -46,7 +46,10 @@
         <label class="field-label" for="loginEmail">Email</label>
         <input type="email" id="loginEmail" name="email" class="input-field" autocomplete="email" placeholder="you@studio.com">
         <label class="field-label" for="loginPassword">Password</label>
-        <input type="password" id="loginPassword" name="password" class="input-field" autocomplete="current-password" placeholder="••••••••">
+        <div class="pw-wrap">
+          <input type="password" id="loginPassword" name="password" class="input-field" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pw-toggle" data-target="loginPassword" aria-label="Show password">show</button>
+        </div>
         <div id="loginError" class="auth-error" role="alert"></div>
         <button type="submit" id="loginBtn" class="primary-btn">Sign in</button>
       </form>
@@ -69,9 +72,18 @@
         <label class="field-label" for="regEmail">Email</label>
         <input type="email" id="regEmail" name="email" class="input-field" autocomplete="email" maxlength="120" placeholder="you@studio.com">
         <label class="field-label" for="regPassword">Password</label>
-        <input type="password" id="regPassword" name="new-password" class="input-field" autocomplete="new-password" placeholder="At least 6 characters">
+        <div class="pw-wrap">
+          <input type="password" id="regPassword" name="new-password" class="input-field" autocomplete="new-password" placeholder="At least 8 characters">
+          <button type="button" class="pw-toggle" data-target="regPassword" aria-label="Show password">show</button>
+        </div>
+        <div class="pw-meter" id="regMeter" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="pw-hint" id="regHint"></div>
+
         <label class="field-label" for="regConfirm">Confirm password</label>
-        <input type="password" id="regConfirm" name="confirm-password" class="input-field" autocomplete="new-password" placeholder="••••••••">
+        <div class="pw-wrap">
+          <input type="password" id="regConfirm" name="confirm-password" class="input-field" autocomplete="new-password" placeholder="Type it again">
+          <button type="button" class="pw-toggle" data-target="regConfirm" aria-label="Show password">show</button>
+        </div>
         <div id="regError" class="auth-error" role="alert"></div>
         <button type="submit" id="regBtn" class="primary-btn">Create account</button>
       </form>
@@ -206,15 +218,19 @@
 
     <div class="section-label">Change password</div>
     <form id="passwordForm" novalidate>
+      <!-- Password managers need a username field to associate the saved entry
+           with; it is read-only and filled from the signed-in account. -->
+      <input type="text" id="acUsername" name="username" autocomplete="username"
+             class="visually-hidden" tabindex="-1" aria-hidden="true" readonly>
       <label class="field-label" for="acCurrent">Current password</label>
       <div class="pw-wrap">
-        <input type="password" id="acCurrent" class="input-field" autocomplete="current-password">
+        <input type="password" id="acCurrent" name="current-password" class="input-field" autocomplete="current-password">
         <button type="button" class="pw-toggle" data-target="acCurrent" aria-label="Show password">show</button>
       </div>
 
       <label class="field-label" for="acNew">New password</label>
       <div class="pw-wrap">
-        <input type="password" id="acNew" class="input-field" autocomplete="new-password" placeholder="At least 8 characters">
+        <input type="password" id="acNew" name="new-password" class="input-field" autocomplete="new-password" placeholder="At least 8 characters">
         <button type="button" class="pw-toggle" data-target="acNew" aria-label="Show password">show</button>
       </div>
       <div class="pw-meter" id="acMeter" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
@@ -222,7 +238,7 @@
 
       <label class="field-label" for="acConfirm">Confirm new password</label>
       <div class="pw-wrap">
-        <input type="password" id="acConfirm" class="input-field" autocomplete="new-password">
+        <input type="password" id="acConfirm" name="confirm-password" class="input-field" autocomplete="new-password" placeholder="Type it again">
         <button type="button" class="pw-toggle" data-target="acConfirm" aria-label="Show password">show</button>
       </div>
 
